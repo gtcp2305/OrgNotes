@@ -1,0 +1,22 @@
+#+TITLE:OpenGL 基本工作流程
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://orgmode.org/worg/style/worg.css"/>
+
+OpenGL使用右手坐标系。
+
+* 基本名词解释
+VBO(vertex buffer object):
+VAO(vertex array object):
+
+* 向OpenGL传输顶点数据
+这里指的是从应用程序（客户端）向OpenGL(服务端)传递顶点数据，也就是从计
+算机内存向GPU显存传输数据，以备着色器程序使用。我们传递的顶点数据中的
+顶点属性可能包含几何坐标、顶点颜色、纹理坐标、法向量等等。而这些数据是
+我们在应用程序中组织定义的。
+** 管理显存
+既然我们要把顶点数据传送到GPU显存上，那么我们如何在客户端管理这些数据
+呢？答案就是VBO,[[https://www.khronos.org/opengl/wiki/Vertex_Specification][opengl-wiki]],允许VBO的个数？[[https://www.khronos.org/opengl/wiki/Vertex_Shader][vertexshader]] [[https://learnopengl-cn.github.io/01%2520Getting%2520started/04%2520Hello%2520Triangle/][learnOpenGL]]
+** 传输数据
+* 创建和编译着色器程序
+** 创建着色器
+** 激活着色器程序
+* 向OpenGL解释顶点数据的结构

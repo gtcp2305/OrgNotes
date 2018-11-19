@@ -1,0 +1,119 @@
+#+TITLE: Pre-processor
+#+OPTIONS: ^:nil
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://orgmode.org/worg/style/worg.css"/>
+
+* 概述
+C Pre-Processor 是编译系统的第一个阶段，预处理主要是对源文件进行修改，
+得到的文件仍可以看做是C/C++代码。这个阶段主要处理以 ~#~ 开头的预处理指
+令，通过对宏的处理实现了以下几个功能：
++ 文件包含
++ 条件编译
+另外在预编译阶段，预处理器还将源文件中的注释全部删除了。
+之所以设置了这个阶段是因为在增强代码的可移植性（条件编译）和方便代码的
+调试和修改有重要的意义。
+需要注意的是由于预处理指令不是C/C++代码，因此在预处理指令最后不需要加
+‘；’。
+* 宏（macro）
+A /macro/ is a fragment of code which has been given a name. Whenever
+ the name is used, it is replaced by the contents of the macro. There
+ are two kinds of macros. They differ mostly in what they look like
+ when they are used. /Object-like/ macros resemble data objects when
+ used, /function-like/ macros resemble function calls.
+OBject-like macor:it looks like a data object in code that uses
+it.They are most commonly used to give a symbolic to numberic
+constants. e.g. =#define PI 3.14=.
+ function-like macros: it looks like a function call .
+根据宏的来源又可以将其分为预定义的宏和自定义的宏。
+* 预定义的宏
+在标准C以及各种编译器(GCC,MSVC)中定义了一些对象宏，这些宏以‘__’开头和
+结尾，并且都是大写字符。我们可以使用這些预定义的宏，定位错误出现的位置，
+极大的方便了调试，可以高效的定位问题的所在。参见[[https://blog.csdn.net/edonlii/article/details/8491342][预定义宏的使用]].
+*** 标准C预定义的宏
+| 预定义宏      | 描述                                                               | 用法 |
+|---------------+--------------------------------------------------------------------+------|
+| __DATE__      | 当前日期，，一个以 "Feb 12 1996" 格式表示的字符常量。              |      |
+| __TIME__      | 当前时间，一个以 "23:59:01" 格式表示的字符常量。                   |      |
+| __FILE__      | 当前文件，一个字符串常量                                           |      |
+| __LINE__      | 当前行号，一个十进制常量                                           |      |
+| __STDC__      | 当编译器以ANSI标准编译时，则为1                                    |      |
+| __func__      | 当前函数名                                                         |      |
+| __BASE_FILE__ | 源文件的完整路径名，和 __FILE__ 不同，被引用的文件仍然是原来文件名 |      |
+| __cplusplus   | 如果使用C++编译则为整数，否则未定义                                |      |
+| __ASSEMBLER__ | 当处理assembly 语言时设置为1                                       |      |
+__FILE__与__BASE_FILE__的区别主要在包含文件的时候：__FILE__会扩展为代
+码所在的文件名，__BASE_FILE__会扩展为使用代码的文件名。如：
+#+BEGIN_EXAMPLE
+//file test.h
+...
+void test(){
+    std::cout<<__FILE__<<std::endl;
+    std::cout<<__BASE_FILE__<<std::endl;
+    std::cout<<__LINE__<<std::endl;//代码第八行
+}
+...
+//---------------------------------------
+//file main.cpp
+#include "test.h"
+int mian(){
+//#line 3 "test.h"//将下一行设为第3行，并且改变 __FILE__的值
+    std::cout<<__FILE__<<std::endl;
+    std::cout<<__BASE_FILE__<<std::endl;
+    std::cout<<__LINE__<<std::endl;//代码第17行
+    test();
+    return 0;
+}
+//---------------------------------------
+输出结果：
+../precessor/main.cpp
+../precessor/main.cpp
+17
+../precessor/test.h
+../precessor/main.cpp
+8
+#+END_EXAMPLE
+__FILE__和__LINE__在报告程序的错误信息时非常有用，方便我们定位错误所在。
+而 =#line= 可以人为的修改__FILE__和__LINE__的值，但是对__BASE_FILE__的
+值没有影响。 =#line= 有[[https://gcc.gnu.org/onlinedocs/cpp/Line-Control.html#Line-Control][三种用法]]：#line /linenum/ ,#line /linenum
+filename/, #line /anything else/. 前两种用法见下例，第三种用法目前不明。
+如果在 ~main.cpp~ 中的 ~#line 3 "test.h"~ 取消注释，那么结果会变成：
+: test.h
+: ../precessor/main.cpp
+: 5
+: ../precessor/test.h
+: ../precessor/main.cpp
+: 8
+
+*** 编译器定义的宏
+待添加
+* 自己定义的宏
+自定义的宏可以分为两类，都可以用 =#define= 来定义，格式是
+=#define MACRO value=,MACRO 代表宏名,value 是它的值，在预处理阶段宏名
+会被它的值所替换（replacement），这也叫宏的扩展（expand），在这个过程
+中，预处理器不会做类型检查，而只会简单的替换，预处理器会从上到下逐行扫
+描你的代码，宏定义在你写下它们的地方才有效。
+** 定义object-like 宏
+根据以上的介绍，看下面的例子：
+: #define BUFFERSIZE 1024
+: #define TABLESIZE BUFFERSIZE
+: TABLESIZE -> 1024
+: #undef BUFFERSIZE
+: #define BUFFERSIZE 2048
+: TABLESIZE -> 2048
+如果一个宏的定义中包含他自己，无论是直接包含还是间接包含，这种情况称为
+自引用，此时只扩展到自引用宏就结束了，而不会继续往下扩展，这也就避免了
+无限的展开，也因此，宏不支持递归。
++ 直接包含
+: #define foo (4+foo)
+~foo~ 只会被扩展成为 (4+foo),而不进一步扩展。
++ 间接包含
+: #define x (4+y)
+: #define y (2*x)
+x -> (4+y) -> (4+2*x)
+y -> (2*x) -> (2*(4+y))
++ 扩展为自己
+: #define EPERM EPERM
+在程序中 EPERM 会扩展为它自己。
+
+** 定义function-like 宏
+* 包含头文件
+* 条件编译

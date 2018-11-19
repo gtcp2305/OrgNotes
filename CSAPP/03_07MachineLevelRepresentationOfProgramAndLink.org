@@ -1,0 +1,62 @@
+#+TITLE: Machine Level Representation of Program And Link
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://orgmode.org/worg/style/worg.css"/>
+
+* 编译系统
+C/C++属于编译型语言，要让机器执行我们用文本编辑器写的代码，需要一套编
+译系统将代码编译成机器可以识别的机器代码，这个机器代码通常是依硬件的不
+同而不同的，所以编译系统的作用就是将源文件转化到可执行目标文件。
+编译过程以及编译系统的组成见下图：
+#+BEGIN_SRC plantuml :file figures/CompilerSys.png  :exports results
+@startditaa
+                                                                   other object program(.o)
+                                                                      |
+                                                                      |
+        +-----------+          +----------+          +-----------+    |      +---------+
+        | Pre-      |          | Compiler |          | Assembler |    +----->|   Linker|
+ *.c/h..| processor | *.i      | (ccl)    | *.s      | (as)      |  *.o      |   (ld)  |
+------->| (cpp)     |--------->|          |--------->|           |---------->|         |---------->
+Source  |cBLU       | Modified | cBLU     | Assembly | cBLU      |Relocatable| cBLU    | Executable
+fil     +-----------+ Source   +----------+ program  +-----------+object     +---------+  object
+                      file                                        program                program
+                                                                   (binary)               (binary)
+
+@endditaa
+#+END_SRC
+
++ 预处理阶段 :: 预处理器执行以 ~#~ 开头的指令（预编译指令）修改源文件，
+           生成 .i 格式的文件，我们可以使用GCC的命令完成这一步：
+               : gcc -E *.c -o *.i
+               关于预处理指令可以参见[[file:C_Preprocessor.org][Pre-processor]]
++ 编译阶段 :: 编译器将.i 文件翻译成文本文件.s,它是一个汇编语言程序，对
+          应的GCC命令是：
+               : gcc -S *.i -o *.s
++ 汇编阶段 :: 汇编器将.s 翻译成机器指令，把这些指令打包成一种叫做 =可
+          重定位目标程序(relocatable object program)=,并将结果保存在目
+          标文件*.o 中。对应的GCC命令是：
+          : gcc -c *.s -o *.o
++ 链接阶段 :: 链接器负责将用到的其它目标程序件正确的合并到本程序中，得
+          到最终的可执行目标文件，它可以加载到内存中，由系统执行。
+经过预处理阶段的代码是另一种形式的C文件，经过编译阶段的代码转化为汇编
+代码，经过汇编阶段和链接阶段的代码都属于机器级代码。
+汇编代码非常接近机器代码，但是比起机器代码的二进制表示，汇编代码的文本
+格式具有更好的可读性。
+X86-64的机器代码与原始C代码差别非常大，一些通常对C语言程序员隐藏的处理
+器状态都是可见的：
+- 程序计数器（通常称为“PC”，在x86-64中用%rip表示）给出将要执行的下一条
+  指令在内存中的地址。
+- 整数寄存器 包含16个命名的位置，分别存储64位的值，可以存储地址或整数
+  数据
+- 条件码寄存器保存最近执行的算术或逻辑指令的状态信息。用来实现控制或数
+  据流中的条件变化，比如用来实现if 和while 语句
+- 一组向量寄存器可以存放一个或多个整数或浮点数值。
+* 汇编代码
+** 数据格式
+| C声明  | Intel 数据类型 | 汇编后缀 | 大小（字节） |
+|--------+----------------+----------+--------------|
+| char   | 字节           | b        |            1 |
+| short  | 字             | w        |            2 |
+| int    | 双字           | l        |            4 |
+| long   | 四字           | q        |            8 |
+| char*  | 四字           | q        |            8 |
+| float  | 单精度         | s        |            4 |
+| double | 双精度         | l        |            8 |

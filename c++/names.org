@@ -1,0 +1,419 @@
+#+STARTUP:    align fold nodlcheck hidestars oddeven lognotestate
+#+SEQ_TODO:   TODO(t) INPROGRESS(i) WAITING(w@) | DONE(d) CANCELED(c@)
+#+CATEGORY:
+#+TAGS:       Write(w) Update(u) Fix(f) Check(c)
+#+LANGUAGE:   en
+#+PRIORITIES: A C B
+#+OPTIONS:    H:3 num:t toc:t \n:nil ::t |:t ^:nil -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gtcp2305.github.io/css/worg.min.css"/>
+#+TITLE: Names And Memory Layout
+本系列是我学习C++的一个记录，主要参考《Primer C++(5th)》和《深入理解计算机系统
+（3th）》，目标是不仅要知道C++的语法规则，并且尽量探究在這些规则背后的原理。做到
+知道其所以然才能知其然。
+* 概述
+名字(name)包含变量名和函数名，C++中名字都要与数据类型(data type)绑定，C++是静态
+类型检查语言，即在编译时就必须检查数据类型。
+* 变量和基本类型
+数据类型时程序的基础，它告诉我们数据的意义和我们能在实际上能够执行的操作。
+** 基本类型
+C++定义了一套包括算术类型(arithmetic type)和空类型(void)在内的基本数据类型。
+** 变量
+变量提供一个具名的、可供程序操作的存储空间。C++中的每个变量都有其数据类型，数据
+类型决定了变量所占内存空间的大小和布局方式、该空间能存储的值的范围，以及变量能进
+行的运算。
+*** 声明与定义
++ 变量定义 :: 定义变量不仅规定了变量的类型和名字，还为这个变量申请存储空间，可以显式或隐式的为变量赋初值，
+          这叫做变量的初始化。变量能且只能被定义一次。形式： /{extern}type
+          var{=init_val}/
++ 变量声明 :: 变量声明规定了变量的类型和名字，变量可以被声明多次。形式： /extern
+          type var/
+变量的定义和声明区分开来是为了支持分离式编译，一个名字(包括变量和函数)可以在适当
+的源文件(.cpp)中定义，如果想要在别的文件中使用它们，就必须在使用前声明它们，好让
+程序知道名字的一切信息（包括变量的类型、函数的参数类型和返回类型），编译系统会使
+用链接器链接名字的声明与定义。名字的声明通常都在头文件中，名字的定义通常在源文件。
+*** 变量初始化与赋值
++ 初始化 :: 当对象在被创建时获得了一个特定值(初始值)。
++ 赋值 :: 在使用变量时擦除其当前值并以一个新值代替。
+C++有三种初始化变量的方式：
++ copy initialization :: 使用‘＝’符号，形式： /int nValue = 8;/
++ direct initialization :: 使用‘()’符号，形式： /int nValue(8);/ 尽管这种初始化
+     方式看起来像是函数调用，但是编译器会追踪哪些名称是变量，哪些是函数，因此這
+     些名字能够被正确解析。
++ uniform initialization :: 使用‘{}’符号，前两种初始化方式在有些情况下不能用，比
+     如初始化容器。在C++11中可以使用这种方式进行初始化，但是要注意在初始化内置类
+     型时，如果初始值存在丢失信息的风险，则编译器会报错。形式： /int a{0};/
+*Note*: 如果你在使用C++11,你应该优先使用列表初始化方式。
+** 复合类型
+复合类型是基于其它类型定义的类型，C++有几种复合类型，这里介绍其中两种：引用和指
+针。
+*** 引用 (reference)
+引用是为对象起了另一个名字。在定义引用时，程序把引用和它的初始值绑定在一起，而不
+是将初始值拷贝给引用，一旦初始化完成，引用将和它的初始值对象绑定在一起，无法再重
+新绑定另一个对象，因此，引用必须初始化。一个引用与它所绑定的对象的类型必须匹配。
+*** 指针
+指针指向一个对象，指针本身是一个对象，它提供了对所指向对象的简介访问，可以重新指
+向一个新的对象，指针与它所指向的对象的类型也必须一致。
+指针的值：
++ 指向一个对象 :: 此时指针的值为该对象的地址，地址由取地址符&获得。
++ 指向紧邻对象所占空间的下一位置 ::
++ 空指针 :: 没有指向任何对象，值为 =nullptr=
++ 无效指针 :: 上述情况情况的其它值
+利用指针访问对象：
++ 只有当指针指向一个对象时 :: 使用解引用符(*)来访问该对象。
+** const 限定符
+*** compile time VS runtime
+当你在编译程序的时候，叫做compile time,在这个阶段，编译器会检查你的代码的正确性，
+并且把你的代码转化为目标文件。
+当你在运行你的程序时，叫做runtime,在这个阶段你的程序逐行执行。
+*** const VS constexpr
+在C++11中有两种类型的常量分别与上述两个阶段对应：编译器常量和运行期常
+,两者的共同点是在初始化后都不会再改变，两者的区别是在编译期初始化还是在运
+行期初始化。编译期常量是C++11新引入的一种常量类型，使用 =constexpr= 标志符。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+constexpr double gravity{9.8};
+
+std::cout<<"Enter your age:";
+int age;
+std::cin>>age;
+const int myAge = age;      //can't use const
+
+void printInt(const int myValue) //can't use constexpr
+{
+std::cout<<myValue;
+}
+#+END_SRC
+*** top-level const VS low-level const
+top-level const 表示对象本身是个const,low-level const 与指针或引用等复合类型的基
+本类型部分有关。
+
+当执行拷贝操作时，顶层const 不受什么影响；而底层const 有如下限制：拷入和拷出的对
+象必须具有相同的底层const 资格，或者两个对象的数据类型能够相互转换。一般来说，非
+常量可以转化为常量，反之不行。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+int i = 0;
+int *const p1 = &i;       //顶层const
+const int ci = 42;        //顶层const
+const int *p2 = &ci;      //底层const
+const int *const p3 = p2; //右边是顶层const,左边是底层const
+const int &r = ci;       //用于声明引用的const 都是底层const
+i = ci;
+p2 = p3;                 //ci,p3为顶层const,无影响
+int* p = p3;             //Error:p3有底层const,而p 没有
+p2 = &i;                 //ok: int* 可以转化为 const int*
+#+END_SRC
+*** constexpr 与 指针
+当使用 =constexpr= 类型的指针或引用时，指向或引用的对象必须具有静态生存期，即地
+址必须是固定的。另外 =constexpr= 限定符仅对指针有效，与所指向的对象无关。也就是
+该指针为顶层const.下面的例子中， =const= 说明p 具有底层const =constexpr= 说明p
+具有顶层const. 其中i 具有静态生存期。
+: constexpr const int *p = &i;
+** 处理类型
+*** 类型别名
+C++11 有两种方法定义类型别名
++ typedef :: typedef double wages;
++ using :: using wages = double;
+*** auto 类型说明符
+C++11 引入了 =auto= 说明符，可以让编译器根据变量的初始值推断变量的类型。因此
+=auto= 定义的变量必须有初始值。 =auto= 通常会忽略掉顶层const,而底层const 则会保
+留下来。
+*** decltype类型指示符
+有时候会希望使用表达式的类型推断处表达式的类型，但是又不想用表达式的值初始化变量，
+C++11 中的 =decltype= 类型指示符就可以实现。
+: decltype(f()) v = x;
+编译器不会调用 f(),而是将 f() 的返回类型作为 v 的类型。
+如果 =decltype= 使用的表达式是一个变量，则返回改变量的类型（包括顶层const 和引用
+在内）。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+const int ci = 0;
+const int &cj = ci;
+decltype(ci) x = 0;  //x 是const int
+decltype(cj) y = x;  //y 是const int&
+#+END_SRC
+*需要说明的是，引用从来都是作为其所引用对象的同义词出现，只有用在 =decltype= 处是
+一个例外*
+**** decltype 和引用
+如果 =decltype= 使用的表达式不是一个变量，则 =decltype= 返回表达式结果对应的类型。
+这里主要讲一下它和引用类型。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+int i = 42;
+int *p = &i;
+int &r = i;
+decltype(r) rr = i;  //rr 为int&引用类型
+decltype(r+0) b;     //b 为int
+decltype(*p) c = b;  //c 为int& 引用类型
+#+END_SRC
+对于变量b,由于r+0结果是整型，所以b的类型也是整型。对于c,解引用指针可以得到指针所
+指的对象，而且还能给这个对象赋值，因此c的类型就是 ~int&~ ,而非 ~int~.
+*Note*: =decltype(variable)= 的结果只有当变量本身是引用时才是引用；
+=decltype((variable))= 的结果永远是引用。
+** 内置数组
+数组是存放相同类型对象的容器，是一种复合类型，這些对象本身没有名字，需要通过其所在位置访问，数组
+的大小确定不变，不能随意向数组中增加元素。数组的元素必须是对象，不能是引用类型。
+*** 数组的定义和初始化
+=TYPE ARRAYNAME[LENGHTH]=
+我们使用方括号 ~[]~ 来告诉编译器我们定义的变量是一个数组而不是一个普通变量，而且
+也告诉编译器数组的维度 ~LENGHTH~ ，元素的类型为 ~TYPE~ ,而数组的名称为
+~ARRAYNAME~. 理解数组的定义形式对于理解复杂的数组很有帮助：我们通过方括号来确定
+这个变量是数组，方括号内的常量表达式指定数组的大小，最后数组元素的类型由最左边的
+类型指定，可以通过数组名称使用数组。可以对数组元素进行列表初始化。
+
+数组有一个非常重要的特性： *不允许拷贝和赋值* :
+#+BEGIN_SRC C -n -r :exports both :results value verbatim
+  int a[] = {0,1,2};
+  int a2[] = a;        //error:数组不允许拷贝
+  a2 = a;              //error:数组不允许赋值
+#+END_SRC
+*** 理解复杂的数组声明
+当数组的声明中有指针及引用等符号时，就显得比较复杂。要理解复杂的数组声明，关键是
+要认清数组声明的本质：先刨除数组名称，主要考察 =TYPE [LENGTH]=.
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+int arr[10];                     //包含10个整数的数组
+int *ptrs[10];                   //包含10个整型指针的数组
+int &refs[10];                   //error:数组的元素类型必须是对象，不能是引用类型
+int (*parrary)[10] = &arr;       //指向int[10]数组的指针； 数组名由 * 修饰
+int (&arrRef)[10] = arr;         //int[10]数组的引用
+int*(&arry)[10] = ptrs;          //int* [10]数组的引用
+#+END_SRC
+*** 访问数组元素
+数组元素可以用范围 ~for~ 语句或下标运算符访问，数组下标通常被定义为 ~size_t~ 类
+型，是一种与机器无关的无符号类型，但是在使用下标的时候必须要保证下标在合理的范围
+之内，防止下标越界。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <iostream>
+  int main(int argc, char *argv[])
+  {
+      double scores[] = {90.0,83.3,75.1};
+      for(const auto i : scores)
+      {
+          std::cout<<i<<" ";
+      }
+      std::cout<<"\n";
+      return 0;
+  }
+
+#+END_SRC
+
+#+RESULTS:
+: 90 83.3 75.1
+*** 数组与指针
+在使用数组时，编译器一般会把它转变为指针：在很多用到数组名字的地方，编译器会自动
+将其转换为指向首元素的指针。但是有一种情况例外 ~decltype~:
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <iostream>
+  int main(int argc, char *argv[])
+  {
+      int ia[]{1,2,3,4,5};
+      auto ia2(ia);        //ia2是指针类型
+      ,*ia2 = 6;
+      std::cout<<ia[0]<<"\n";
+      decltype(ia) ia3 = {6,7,8,9,0};
+      for(const auto& e : ia3)
+          std::cout<<e<<" ";
+      std::cout<<"\n";
+      return 0;
+  }
+#+END_SRC
+#+RESULTS:
+: 6
+: 6 7 8 9 0
+除了使用数组可以获得首元素的指针以外，还可以使用标准库函数(begin end)获得首元素和尾后元素的
+指针，它们定义在 ~iterator~ 头文件中，
+**** 指针运算
+指针可以进行解引用，递增递减，与整数相加减，两个指针比较大小，两个指针相减等操作。
+与整数相加减是地址前进了该整数个距离(大小由类型决定),结果仍是指针；两个指针相减
+的结果是它们之间的距离，参与运算的两个指针必须指向同一个数组中的元素，结果类型是
+~ptediff_t~,是一种带符号类型， 这样的两个指针还能比较大小，通常数组后面的指针比
+前面的大。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <iostream>
+  #include <iterator>
+  int main(int argc, char *argv[])
+  {
+      int arr[]{1,2,3,4,5};
+      auto diff = std::end(arr) - std::begin(arr);
+      std::cout<<"diff is "<<diff<<"\n";
+      auto b = std::begin(arr)+1;
+      auto e = std::end(arr);
+      while(b < e)
+      {
+          std::cout<< *b++<<" ";
+      }
+
+      return 0;
+  }
+
+#+END_SRC
+
+#+RESULTS:
+: diff is 5
+: 2 3 4 5
+**** 下标和指针
+当对数组使用下标运算符时，编译器会自动将数组名称变为指向首元素的指针；只要指针指
+向的是数组元素（或者尾后元素），都可以对指针进行下标运算。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+int arr[]{1,2,3,4,5};
+arr[3] = 90;                  //相当于 *(arr+3) = 90
+int *p = arr;
+int i = *(p+3);               //相当于int i = arr[3]
+p[4] = 8;                     //相当于ia[4] = 8
+#+END_SRC
+**** 使用数组初始化 vector
+虽然不允许内置数组之间拷贝和赋值，也不允许用 ~vector~ 为数组初始化，但是可以使用
+内置数组为 =vector= 对象赋初值。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <vector>
+  #include <iterator>
+  #include <iostream>
+  int main(int argc, char *argv[])
+  {
+      int arr[] = {1,2,3,4,5,6,7,8,9,0};
+      std::vector<int> veci(std::begin(arr),std::end(arr));
+      for(const auto & e : veci)
+          std::cout<<e<<" ";
+      std::cout<<"\n";
+      return 0;
+  }
+#+END_SRC
+
+#+RESULTS:
+: 1 2 3 4 5 6 7 8 9 0
+*** 动态数组
+C++除了固定大小的数组，还有动态数组，与固定大小的内置数组相比，动态数组的大小可
+以在运行期确定。为了定义动态数组，我们使用 =new[]= 创建空间， =delete[]= 释放空
+间。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <iostream>
+  int main(int argc, char *argv[])
+  {
+      std::cout<<"Enter a positive integer:\n";
+      int length;
+      std::cin>>length;
+      int *arr = new int[length];
+      std::cout<<"I just allocate an array of length:"<<length<<"\n";
+      delete [] arr;
+      return 0;
+  }
+#+END_SRC
+**** 维度与初始化
+动态数组必须指定大小，而不能像固定大小数组那样可以缺省大小；如果想要初始化可以使
+用列表初始化，
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+int * arr = new int[5]{2,4,6,8,0};
+#+END_SRC
+**** 改变大小
+尽管动态数组可以在运行期确定大小，但是C++没有提供改变一个已经分配了内存空间的动
+态数组的内置方法，这个限制可以这样克服：重新分配一块新的内存空间，拷贝原动态数组
+内容到新的内存空间，删除原动态数组。
+*** 多维数组
+C++中的多维数组其实就是数组的数组，多维数组可以有多个维度，按照从内到外的顺序阅
+读此类定义有助于更好的理解其真实含义。例如：
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+int ia[3][4];
+#+END_SRC
+定义了一个大小为3的数组，该数组的每个元素都是含有4个整数的数组。对于二维数组来说，
+常把第一个维度称为行，第二个维度称为列。
+**** 多维数组的下标运算
+可以使用下标运算符来访问多维数组的元素，此时数组的每个维度对应一个下标运算符。如
+果表达式含有的下标运算符数量与数组的维度一样多，该表达式的结果将是给定类型的元素；
+反之，如果表达式含有的下标运算符数量比数组维度小，则表达式的结果将是给定索引处的
+一个内层数组。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  int arr[10][20][30] = {0}; //将所有元素初始化为0
+  int ia[3][4] = {
+      {0,1,2,3},
+      {4,5,6,7},
+      {8,9,10,11},
+  };
+
+  ia[2][3] = arr[0][0][0];
+  int (&row)[4] = ia[1];    //将row 绑定到第二个4元素数组上
+#+END_SRC
+
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <iostream>
+  int main(int argc, char *argv[])
+  {
+      constexpr int rowCnt = 3;
+      constexpr int colCnt = 4;
+      int ia[rowCnt][colCnt];
+      for(size_t i = 0; i < rowCnt; ++i)
+      {
+          for(size_t j = 0; j < colCnt; ++j)
+          {
+              ia[i][j] = i * colCnt + j;
+          }
+      }
+      for (auto &row : ia) {        //之所以使用引用是为了避免数组退化为指针
+          for (auto &col : row) {
+              std::cout<<col<<" ";
+          }
+
+      }
+
+      return 0;
+  }
+#+END_SRC
+
+#+RESULTS:
+: 0 1 2 3 4 5 6 7 8 9 10 11
+*Note*: 要使用范围 =for= 语句处理多维数组，除了最内层的循环外，其它所有循环的控
+制变量都应该使用引用类型。
+**** 指针和多维数组
+当程序使用多维数组的名字时，也会自动将其转换为指向数组首元素(第一个内层数组)的指
+针，
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+    #include <iostream>
+    #include <iterator>
+    int main(int argc, char *argv[])
+    {
+        int ia[3][4] =
+            {
+                {0,1,2,3},
+                {4,5,6,7},
+                {8,9,10,11},
+            };
+
+        int (*p)[4] = ia;  //指向ia[0]
+        for(auto e = std::begin(*p);e != std::end(*p); ++e)   //*p 的类型为int[4],时数组；e 是该数组的迭代器
+            std::cout<<*e<<" ";
+        std::cout<<"\n";
+
+        p = &ia[2];        //指向ia[2]
+        for(auto e : *p)   //e 是int 类型，为数组中的元素
+            std::cout<<e<<" ";
+        std::cout<<"\n";
+        return 0;
+    }
+#+END_SRC
+
+#+RESULTS:
+: 0 1 2 3
+: 8 9 10 11
+使用类型别名可以简化指向多维数组的指针，让人更容易理解这类指针。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <iostream>
+  #include <iterator>
+  typedef int intArrFoure[4];
+  // using intArrFoure = int[4]; //c++11中的等价表达式
+
+  int main(int argc, char *argv[])
+  {
+      int ia[3][4] =
+          {
+              {0,1,2,3},
+              {4,5,6,7},
+              {8,9,10,11},
+          };
+      for(intArrFoure *p = ia; p != ia+3; ++p)
+          for(auto e : *p)
+              std::cout<<e<<" ";
+      std::cout<<"\n";
+      return 0;
+  }
+
+#+END_SRC
+
+#+RESULTS:
+: 0 1 2 3 4 5 6 7 8 9 10 11
+** 枚举类型
+* 分离编译系统

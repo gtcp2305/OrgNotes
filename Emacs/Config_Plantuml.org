@@ -1,0 +1,56 @@
+#+TITLE:  Use Plantuml in Emacs
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://orgmode.org/worg/style/worg.css"/>
+
+* Setup Java Environment
+:PROPERTIES:
+:ID:       aeb5b860-f2c3-43c9-8e6e-2475bc5c1cb3
+:END:
+1. Download [[http://www.oracle.com/technetwork/java/javase/downloads/index.html][JRE]].
+2. tar -zxvf jre...
+3. edit /profile/:
+   - nano etc/profile
+   - add these to /profile/ :: JAVA_HOME is where you unzip JRE
+     =export JAVA_HOME=/home/tiantongtong/Downloads/jre1.8.0_161=
+     =export JRE_HOME=/home/tiantongtong/Downloads/jre1.8.0_161/jre=
+      ~export CLASSPATH=.:$CLASSPATH:$JAVA_HOME/lib:$JRE_HOME/lib~
+     =export PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin=
+4. Exit nano & execute =source /etc/profile=
+* Setup Plantuml
+:PROPERTIES:
+:ID:       a5830113-2abc-4093-9753-18e4ecb30491
+:END:
+** Download palntuml.jar to your disk at [[http://plantuml.com/starting][here]].
+:PROPERTIES:
+:ID:       9c71984e-4119-482f-930b-058eaf7f5beb
+:END:
+** Install Graphviz
+:PROPERTIES:
+:ID:       625f2bd4-2ef7-494e-bbed-bed248276313
+:END:
+1. In UNIX :
+=sudo apt install graphviz=
+2. In windows:
+download at [[https://graphviz.gitlab.io/_pages/Download/Download_windows.html][here]].and install
+** Configure .emacs/init.el
+:PROPERTIES:
+:ID:       e41ceb8d-e382-4041-b4b2-c93e4b0e9318
+:END:
+add these to .emacs or init.el
+#+BEGIN_SRC emacs-lisp
+;; active Org-babel languages
+(org-babel-do-load-languages
+    'org-babel-load-languages
+        '(;; other Babel languages
+            (plantuml . t)))
+(setq org-plantuml-jar-path
+      (expand-file-name "/home/tiantongtong/.emacs.d/extra/plantuml.jar"))
+
+;; Enable plantuml-mode for PlantUML files
+(add-to-list 'auto-mode-alist '("\\.plantuml\\'" . plantuml-mode))
+
+;; Integration with org-mode
+(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+#+END_SRC
+:PROPERTIES:
+:ID:       9deade7e-0ab4-4159-8ee9-942dc4ba9c64
+:END:

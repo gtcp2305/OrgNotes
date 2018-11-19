@@ -1,0 +1,176 @@
+#+TITLE:      名词
+#+STARTUP:    align fold nodlcheck hidestars oddeven lognotestate
+#+SEQ_TODO:   TODO(t) INPROGRESS(i) WAITING(w@) | DONE(d) CANCELED(c@)
+#+CATEGORY:    English Grammar
+#+TAGS:       Write(w) Update(u) Fix(f) Check(c)
+#+LANGUAGE:   en
+#+PRIORITIES: A C B
+#+CATEGORY:   worg
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://orgmode.org/worg/style/worg.css"/>
+
+* 分类
+可数名词：
+1. 普通名词，比如man,city
+2. 集体名词，比如staff,steam
+不可数名词
+1. 物质名词，比如iron,water
+2. 抽象名词，比如fear,joy
+3. 专有名词，比如Tom,China
+在特定场合下，不可数名词可以转换为可数名词（可以有复数或加不定冠词的形
+式），词义上往往有变化。例如：
+iron(铁) -> an iron (熨斗)
+money(钱) -> moneys (金额)
+* 性别
+**  大多数英语名词没有性别的区别，但有些名词具有性别的不同形式
+| 阳性              | 阴性               |
+|-------------------+--------------------|
+| bridegroom 新郎   | bride 新娘         |
+| horse 公马        | mare 母马          |
+| drake 公鸭        | duck 母鸭          |
+| bull 公牛         | cow 母牛           |
+| bachelor 未婚男子 | spinster 未婚女子  |
+| wizard 男巫       | witch 女巫         |
+| cock/rooster 公鸡 | hen 母鸡           |
+| lad 少男          | lass 少女          |
+| footman 男仆      | maid 女仆          |
+| butler 男管家     | housekeeper 女管家 |
+| best man 男傧相   | brides maid 女傧相 |
+|-------------------+--------------------|
+| 加 -ess 构成阴性  |                    |
+|-------------------+--------------------|
+| actor 男演员      | actress 女演员     |
+| emperor 皇帝      | empress 女皇       |
+| heir 男继承人     | heiress 女继承人   |
+| host 男主人       | hostess 女主人     |
+| author 作家       | authoress 女作家   |
+| lion 公狮         | lioness 母狮       |
+| prince 王子       | princess 公主      |
+| god 神            | goddess 女神       |
+| waiter 男服务员   | waitress 女服务员  |
+| master 主人       | mistress 主妇      |
+|                   |                    |
+**  惯用于男性和惯用于女性的词
+ 有些名词习惯用于男性，其代词用he,him,his 等对应，有些则用于女性，其
+   代词用she,her 等对应。例如：
+1. 惯用于男性： general,lawyer,fellow,lover,solider,sailor 等
+2. 惯用于女性： nurse,typist,dressmaker,housekeeper 等
+3. 拟人化的阳性词（伟大，强大，恐怖）：Time,Mountain,Wind,War,the
+   Ocean,Thunder,Fear,Anger,Murder 等
+4. 拟人化的阴性词（柔和，优美）：
+   Moon,Spring,Night,Peace,Hope,Virtue,Truce,the Earth,Justice,Fame 名
+   声，Victory,Pride,
+船，火车等通常看做阴性，例如：
+The Queen Mary was on _her_ maiden voyage then 玛丽皇后号当时在做处女
+航。
+国家，都市通常看做女性，例如：
+China is proud of her rich natural resources 中国以其丰富的自然资源而
+自豪
+** 名词前加表示性别的词可以表示性别
+在一些没有性别的词前加上he,she,girl,lady 等词来区分性别。
+
+male monkey <-> female monkey |  man doctor <-> woman doctor |  landlord
+房东 <-> landlady 女房东
+* 名词的数
+** 规则名词
+1. 大多数名词的复数是在单数名词后加 -s 。
+2. 以 o, s, x, sh, ch 结尾的名词，在词尾加 -es 。
+但是当词尾的ch 发 /k/ 音时要加 -s ,例如：
+monarch -> monarchs | stomach -> stomachs
+但是有些以字母o 结尾的外来词或缩写词的复数形式只加 -s,如果o前面是元音
+字母，也只加－s ,如：
+kilo -> kilos | piano -> pianos | photo -> photos | bamboo -> bamboos |
+zoo -> zoos | two -> twos | ego 自我 -> egos
+但下面的词加 -s 或 -es 均可：zero,cargo,volcano,mango,memento 纪念物，
+commando 突击队，motto 座右铭，等
+下面几个词有两种变化形式：
+buffo -> buffo(buffi) 滑稽歌手 | cello -> cellos(celli)大提琴 | solo ->
+solos(soli)独奏曲
+3. 以y 结尾
+以辅音加y 结尾的名词，变y 为i 再加 -es,如lady -> ladies.
+y 前面是元音字母时只加 -s,如key -> keys,boy -> boys
+4. f 或 fe
+去掉f/fe 再加 -ves: calf 小腿，牛犊，象、鲸鱼的幼崽，
+half,knife,leaf,life,self,sheaf,shelf,thief,wife,wolf,elf 小鬼
+直接加－s: chief,cliff,grief 悲哀，turf 草地，belief,reef 暗礁，gulf
+湾，brief 纲要，mischief 恶作剧，proof 证据，cuff 袖口，roof 屋顶，
+safe 保险箱等。
+比较不同复数形式的不同意义：
+staff -> staffs 职员（参谋，幕僚） -> staves 棒，calf -> calfs/calves 牛
+犊 -> calves 小腿， beef -> beefs 牢骚 -> beeves 长成待宰的牛
+** 字母，数字，单词，符号等被作为“字”看待时，常加 -s 构成复数
+Your 3s look like 8s. 你的3看起来象8
+Pay your attention to your +s and -s. 注意你的＋号和－号
+** 姓氏
+a/an + 姓氏单数，可以有以下几个意思：
++ 表示某家族的一个成员 :: His wife is a Kennedy(= a number of the
+                Kennedy family)
++ 表示某人的作品 :: Have you got a complete Lu Xun( = a set of Lu
+             Xun's complete works)
++ 表示“某个叫（姓）...的人” :: Our music teacher is a Miss White.
++ 表示与该人（多指名人）有类似性格的人，可译成“一个象...一样的人” ::
+     Only a Lu Xun (= a great writer like LuXun) could have written that.
++ 表示“某位姓...的人”，常用来区别同姓的几个人 :: I don't refer to the
+     Lao Wang who works in this company.我指的不是在这个公司里工作的老
+     王。
+在英语中姓氏后面可以加s,表示以下几种含义：
+1. 表示某姓氏的一家人，但是前面必须使用定冠词，比如 the Jacksons 杰克
+   逊一家人，做主语时，谓语常用复数形式，比如：The Smiths are coming to dinner. 史密斯一家将要来赴宴
+2.表示两个或多个同姓的人，可以分为以下三种：
++ 头衔和人名都相同，可以在人名或头衔后面加－s :: Doctor Anderson ->
+     the Doctors Anderson -> the Doctor Andersons
++ 头衔相同但人名不同，在头衔后面加－s :: Professor Black and Brown ->
+     Professors Black and Brown
++ 头衔不同但人名相同 :: Mr., Mrs. and Misses Huntington 亨廷顿先生, 亨廷顿夫人和亨廷顿小姐们
+** 复数形式具有特殊含义的名词
+| brain 脑 -> brains 脑力，智能                   | sand 沙 -> sands 沙漠         | green -> greens 蔬菜        | look 脸色，看 -> looks 面容，美貌   | pain 痛苦 -> pains 辛苦，努力   |
+|-------------------------------------------------+-------------------------------+-----------------------------+-------------------------------------+---------------------------------|
+| water 水 -> waiters 矿泉水，领海                | air 空气 -> airs 架子         | colour 颜色 -> colours 军旗 | sky 天空 -> skies 天气，领空        | manner 态度 -> manners 礼貌     |
+| work 工作 -> works 著作，工厂                   | regard 尊敬 -> regards 问候   | future 将来 -> futures 期货 | rain 雨 -> rains 大雨，雨季         | nerve 神经，勇气 -> nerves 胆怯 |
+| statistic 统计资料中的一页 -> statistics 统计学 | death 死亡 -> deaths 死亡事例 | wonder 惊奇 -> wonders 奇观 | content 含量 -> contents 目录，记录 | sight 景象，视力 -> 景象        |
+** 复合名词
+复合名词有多种构成形式，有些中间有连字符，有些没有，有些可数，有些不可
+数.复合名词的组成形式有以下几种：
+*** 名词（代词）＋名词
+bottle neck 瓶颈   power plant 发电厂  blood type 血型   member state
+成员国  battle-cry 口号  book worm 书呆子  feature film 故事片
+waiter-lily 睡莲  toilet-paper 卫生纸
+*** 动词＋副词
+lookout 瞭望台，注意  cutoff 近路  put-off 推迟  breakthrough 冲破
+show-off 卖弄  turnover 营业额  stand-by 支持者，靠山
+*** 副词＋动词
+output 结果   outlook 观点，前景  income 收入 intake 吸入  outcome 结果
+*** 动名词＋副词
+bringing-up 养育  going-over 痛骂（打）  gongings-on 行为 举动
+*** 形容词＋名词
+red tape 繁文缛节  old hand 老手  a white lie 善意的谎言  leftover 剩
+菜（饭）  well-being 福利  good-for-nothing 废物，无用之人。注意以下几
+组的意义：
+redcoat 英国兵  red coat 红色的上衣  nobleman 贵族 noble man 高尚的人
+greenhouse 温室 green house 绿色的房子
+** 名词化
+其它词类充当名词的现象叫做名词化。
+The sick and the wounded were taken good care of .
+Her beloved has now become an outcast and gone through a lot of
+sufferings.
+The boy came on all fours to ask for seconds,那个男孩爬过来要第二份食
+物
+He is not somebody,but a nobody.
+** 有关副职的说法
+根据职位可以分为职权岗位与技术岗位，这两个的副职的用词不同：
+*** 职权岗位的副职 vice- +名词
+vice-president 副总统，副会长
+vice-chairman  副主席，副会长
+vice-minister  副部长
+vice-governor  副省长
+vice-premier   副首相，副总理
+另外还有一个词deputy(noun),是“代行”的意思，表示正职不在的时候代行职责，比如：
+I am acting as deputy till the manager returns.
+该词来源于depute(verb),意思是“向（某人）授权做某事”，depute sb to do
+sth.比如：
+He was deputed to put our views to the committee.
+*** 技术岗位
+associate 和 assistant 可以表示一些技术职称的副职，比如：
+associate professor 副教授  assistant professor 助理教授
+associate research fellow 副研究员  assistant research fellow 助理研究员
+** 所有格

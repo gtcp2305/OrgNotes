@@ -1,0 +1,152 @@
+#+TITLE:Basic OpenGL
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://orgmode.org/worg/style/worg.css"/>
+
+* 概述
+** 核心模式与立即渲染模式
+OpenGL一般被认为是一个API(Application Programming Interface.应用程序编
+程接口)，包含了一系列包含了一系列可以操作图形、图像的函数。然而，
+OpenGL本身并不是一个API，它仅仅是一个由Khronos组织制定并维护的规范
+(Specification)。
+早期的OpenGL使用立即渲染模式（Immediate mode，也就是固定渲染管线），
+这个模式下绘制图形很方便。OpenGL的大多数功能都被库隐藏起来，开发者很少
+能控制OpenGL如何进行计算的自由。而开发者迫切希望能有更多的灵活性。随着
+时间推移，规范越来越灵活，开发者对绘图细节有了更多的掌控。立即渲染模式
+确实容易使用和理解，但是效率太低。因此从OpenGL3.2开始，规范文档开始废
+弃立即渲染模式，并鼓励开发者在OpenGL的核心模式(Core-profile)下进行开发，
+这个分支的规范完全移除了旧的特性。
+** 渲染
+渲染表示计算机从模型（3D）创建最终图像（2D）的过程。OpenGL只是其中一种
+渲染系统，它是基于光栅化的系统。
+** 着色器
+这是现代OpenGL 最本质的特征，可以将它看作是专为GPU编译的一种小型程序。
+OpenGL在其内部包含了所有的编译器工具，可以直接从着色器源代码创建GPU所
+需的编译代码并执行。OpenGL有四种不同的着色器阶段。
+** 状态机
+OpenGL 是一个巨大的状态机(State Machine)：一系列的变量描述OpenGL此刻应
+当如何运行。OpenGL的状态通常被称为OpenGL上下文(Context)。我们通常使用
+如下途径去更改OpenGL状态：设置选项，操作缓冲。最后，我们使用当前OpenGL
+上下文来渲染。
+** 对象
+在OpenGL中一个对象是一些选项的集合，它代表OpenGL状态的一个子集。
+** 顶点属性
+顶点属性包含了定义一个顶点所需要的所有数据，比如位置属性，颜色属性，法
+向量属性和纹理属性等等。
+** 顶点数据
+顶点数据是一系列顶点，一个顶点是由若干顶点属性定义的。
+** 可编程渲染管线
+渲染管线是一系列数据处理的过程，并且将应用程序的数据转换到最终渲染的图
+像。
+OpenGL是使用客户端-服务端的形式实现的，我们编写的应用程序可以看作是客
+户端，而计算机图形硬件厂商提供的OpenGL实现可以看作服务端。
+OpenGL的渲染管线(rendering pipeline)可以看作是处理从客户端传过来的数据
+的过程，这个过程在GPU上进行，由一系列的着色器程序执行，最终将客户端传
+递的数据转换为最终渲染的图像。客户端传到GPU上的数据通常被称为顶点数据
+(vertex data),保存在GPU的显存上，而处理这些数据的程序运行在GPU上，称为
+着色器程序，这些程序会读取显存上的数据，因此OpenGL的工作流程通常可以概
+括为：向GPU传送顶点数据、创建和编译着色器程序、向OpenGL解释顶点数据的
+结构。
+
+#+BEGIN_SRC plantuml :file figures/OpenGLProcess.png  :exports results
+@startuml
+partition Client {
+}
+partition Server {
+partition Must {
+    #green:Vertex Shader;
+    #yellow:Primitive Assembly;
+}
+partition Opt {
+    #green:Tessellation Control Shader;
+    #yellow:Tessellation Primitive Generator;
+    #green:Tessellation Evalution Shader;
+    #yellow:Primitive Assembly;
+}
+partition Opt {
+    #green:Geometry Shader;
+    #Yellow:Primitive Assembly;
+}
+#Yellow:Rasterizer;
+
+partition Must {
+    #green:Fragment Shader;
+}
+}
+@enduml
+#+END_SRC
+渲染管线有4个处理阶段，还有一个通用计算阶段，每个阶段都需要有一个专门
+的着色器进行控制：
++ 顶点着色阶段(vertex shadeing stage) :: 接受在VBO中给出的顶点数据，
+     独立处理每个顶点。为必需阶段。
++ 细分着色阶段(tessellation shading stage) :: 接受顶点着色阶段的输出数
+     据，在OpenGL管线内部生成新的几何体。为可选阶段。
++ 几何着色阶段(geometry shading stage) :: 在OpenGL管线内部对所有几何图
+     元进行修改，会作用于每个独立的图元。为可选阶段。
++ 片段着色阶段(fragment shading stage) :: 处理OpenGL光栅化后生成的独立
+     片元，计算一个片元的颜色和深度值，然后传递到管线的片元测试和混合
+     的模块。为必需阶段。
++ 计算着色阶段(compute shading stage) :: 它不是图形管线的一部分，而是
+     在程序中相对独立的一个阶段。处理的并非顶点和片元这类图形数据，而
+     是应用程序给定范围的内容。
+图元装配（primitive assembly）将顶点着色器输出的所有顶点作为输入（如果
+是GL_POINTS,那么就是一个顶点）并将所有的点装配成指定图元的形状。
+光栅化（rasterization）会把图元映射为最终屏幕上相应的像素，生成供片段
+着色器使用的片段。
+片段与像素的区别：OpenGL 在光栅化后生成的片段实际上就对应了屏幕上的相
+应像素，但是屏幕上的一个像素可能会有若干个片段与之对应，但是最终只有一
+个片段会对应到像素上，这就需要 OpenGL 开启深度测试（depth test or
+z-buffering）和模板测试（stencil test）功能来决定一个片段是否可见。
+_when linking the shaders into a program,it links the outputs of each
+shader to the inputs of the next shader_
+* Vertex Shader
+Vertex shader can take attribute and uniform variables as inputs,and
+produce other variables as outputs.Both attribute and uniform
+variables are treated as read-only variables by vertex-shader.
+
+** Inputs
+ /Attribute variables/ can take on a different value for each vertex
+ in your model and are considered to be read-only to the vertex
+shader.Some of the attribute variables are built-in to GLSL,such as
+ vertex coordinates,vertex color,vertex normal,and vertex texture
+coordinates.
+You can also create your own per-vertex attribute variables.These
+can be used to send per-vertex data values,as well as geometry,into
+the graphics pipeline so that the graphics functions can use the data
+in developing images.This might include per-vertex
+application-specific data such as elevation,temperature,density,or
+speed,which can be used in computing the image.Some examples are
+in _Graphics Shaders.theory and practice_ book.
+/Uniform variables/ are constant across a graphics primitive and are
+read-only to all shader types.As with attribute variables,uniform
+variables come from the OpenGL application program.
+The GLSL built-in uniform variables reflect the kind of information
+that an application would specify,including such item as
+- The primitive OpenGL matrices,such as the ModelView matrix,the
+  Projection matrix and the texture matrix.
+- Te derived OpenGL matrix,such as the Normal matrix,the
+  ModelViewProjection matrix,and the ModelViewInverse matrix.
+- The front and back clipping planes and the user-defined clipping planes.
+- The material properties:ambient,diffuse,specular,shininess,and emission.
+- The full set of light properties,including
+  colors,position,direction,cutoff,and attenuation properties.
+- The texture environment.
+- The fog data,such as color,density,start and end.
+You can also define your own uniform variables if you are working with
+data that is constant over a graphics primitive.
+Another vertex shader input is texture coordinates,the most common use
+of texture coordinates in a vertex shader is to pass them along as
+/out/ variables so they can be interpolated by the rasterizer for use
+by the fragment shader.
+Vertex shaders can also accept uniform sampler variables to access several
+kinds of textures.
+
+** Outputs
+A ver-tex shader can create and set variables for later use in tessellation, geometry,
+or fragment shaders. The vertex shader must also create certain variables that
+are needed for rasterization and fragment processing.
+The special variables that are output for the geometry of the model
+include the required variable gl_Position (which holds the 4D vertex position
+in clip coordinates), and gl_PointSize (which optionally holds a point size
+in pixels). If texturing is to be used, the texture coordinate attribute variables
+gl_MultiTexCoordi must be converted into out variables so that they can be
+used in subsequent pipeline stages, including being interpolated by the raster-
+izer for the fragment shader.
