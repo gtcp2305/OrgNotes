@@ -1,11 +1,4 @@
-#+STARTUP:    align fold nodlcheck hidestars oddeven lognotestate
-#+SEQ_TODO:   TODO(t) INPROGRESS(i) WAITING(w@) | DONE(d) CANCELED(c@)
-#+CATEGORY:
-#+TAGS:       Write(w) Update(u) Fix(f) Check(c)
-#+LANGUAGE:   en
-#+PRIORITIES: A C B
-#+OPTIONS:    H:3 num:t toc:t \n:nil ::t |:t ^:nil -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gtcp2305.github.io/css/worg.min.css"/>
+#+INCLUDE: /home/ttt/.templates/NoteConfig.org
 #+TITLE: Names And Memory Layout
 本系列是我学习C++的一个记录，主要参考《Primer C++(5th)》和《深入理解计算机系统
 （3th）》，目标是不仅要知道C++的语法规则，并且尽量探究在這些规则背后的原理。做到
@@ -447,3 +440,92 @@ int ia[3][4];
 成员，因此，及时某个整数值恰好与枚举成员的值相等，它也不能作为函数的 =enum= 实参
 使用。
 * 名字的作用域、生存期、链接性
+一个名字通常具有以下三个属性：
++ scope :: determines where a variable is accessable
+  + /local scope/ :: *local variables(defined inside a function), function
+                     parameters,locally-defined types* :only accessable at the
+                     point of declaration and go out of scope at the end of the
+                     block they are defined in.they have automatic duration and
+                     no linkage.
+
+  + /file scope/ ::  *global variables(defined outside a function),normal
+                    functions,global-defined types* :accessable from
+                    the place it declared to the end of the file;they have
+                    static duration;if it has extern linkage,it can be
+                    accessable in another file with forward declaration,if it
+                    has internal linkage,it can only be used in the file it is defined.
+
++ duration :: determines where it is created and destroyed
+  + /automatic duration/ :: *normal local variables* : duration automatic managed by stack
+  + /static duration/ :: *static local variables,global variables* :created when
+       program begins and destroyed when program ends.
+  + /dynamic duration/ :: *dynamically allocated variables* :created and
+       destroyed by programmer request.
+
++ linkage :: determines whether multiple instances of an identifier refer to the
+             same variable or not,
+
+  + /internal linkage/ :: identifier can be accessd anywhere within the file it
+       is declared,this includes:
+    - static global variables
+
+    - const global variables
+
+    - static functions
+
+  + /extern linkage/ :: identifier can be accessd anywhere within the file it is
+       declared,or other files(via a forward declaration),this inlcudes:
+    - normal funcitons
+
+    - non-const global variables
+
+    - extern const variables
+
+    - user-defined types,such as enums,typedefs,and classes declared inside a block
+
+
+  + /no linkage/ :: mean the identifier only refers to itself,inlcudes:
+    - local variables
+
+    - user-defined types,such as enums,typedefs,and classes declared inside a
+      block
+
+*Variable scope, duration, and linkage summary*
+
+Because variables have scope, duration, and linkage, let’s summarize in a chart:
+| Type                               | Example                  | Scope       | Duration           | Linkage          | Notes                        |
+| Local variable                     | int x;                   | Block scope | Automatic duration | No linkage       |                              |
+| Static local variable              | static int s_x;          | Block scope | Static duration    | No linkage       |                              |
+| Dynamic variable                   | int *x = new int;        | Block scope | Dynamic  duration  | No linkage       |                              |
+| Function parameter                 | void foo(int  x)         | Block scope | Automatic duration | No linkage       |                              |
+| External non-const global variable | int g_x;                 | File scope  | Static duration    | External linkage | Initialized or uninitialized |
+| Internal non-const global variable | static int g_x;          | File scope  | Static duration    | Internal linkage | Initialized or uninitialized |
+| Internal const global variable     | const int g_x(1);        | File scope  | Static duration    | Internal linkage | Must be initialized          |
+| External const global variable     | extern const int g_x(1); | File scope  | Static duration    | External linkage | Must be initialized          |
+
+*Forward declaration summary*
+
+You can use a forward declaration to access a function or variable in another file:
+| Type                                          | Example               | Notes                           |
+| Function forward declaration                  | void foo(int x);      | Prototype only,no function body |
+| Non-const global variable forward declaration | extern int g_x;       | Must be uninitialized           |
+| Const global variable forward declaration     | extern const int g_x; | Must be uninitialized           |
+* 命名空间
+命名空间为防止名字冲突提供了更加可控的机制。命名空间分割了全局命名空间，其中每个
+命名空间是一个作用域，只要能出现在全局作用域中的声明就能置于命名空间中，主要包括：
+类、变量、函数、模板和其它命名空间。命名空间作用域后面无需分号。某个命名空间中定
+义的变量可以被该命名空间或内嵌于该命名空间中的其它成员直接访问。命名空间可以是不
+连续的，可以被定义在多个不同的源文件中。以下是一些特殊命名空间：
+** 内联命名空间
+C++11引入了一种新的命名空间叫做内联命名空间(inline namespace),内联命名空间中的名
+字可以被外层命名空间直接使用，关键字 =inline= 必须出现在命名空间第一次定义的地方，
+后续再打开命名空间的时候可以写 =inline=,也可以不写。
+** 未命名的命名空间
+未命名的命名空间(unnamed namespace)中定义的变量拥有static duration:它们在第一次使用前创建，直到程序
+结束才销毁；链接性为内部：如果两个不同文件都含有unnamed namespace,则这两个空间互
+无关系，可以使用相同的名字，并且表示的是不同的实体；作用域与该命名空间所在的作用
+域相同，因此定义在unnamed namespace 中的名字可以直接使用。
+** 命名空间别名
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+namespace alias = NAME1::NAME2...;
+#+END_SRC

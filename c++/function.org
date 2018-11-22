@@ -1,0 +1,554 @@
+#+INCLUDE: /home/ttt/.templates/NoteConfig.org
+#+TITLE: Function
+#+Author:
+#+Email:
+#+DATE:  2018-11-21
+* 函数基础
+函数是一个具名的代码块，我们通过调用函数来执行相应的代码，一个典型的函数包括以下
+四部分：返回类型、函数名、形参列表、函数体。在调用函数时我们使用实参初始化形参。
+函数在使用之前也需要声明，与变量类似，函数可以声明多次，但只能定义一次，唯一的例
+外是虚函数，如果一个函数永远也不会被用到，那么它可以只有声明没有定义。
+
+函数的调用无外乎两个方面，参数传递和结果返回，下面就这两个方面进行详细的解释。
+* 参数传递
+每次调用函数时都会重新创建它的形参，并用引入的实参(arguments)对形参(parameters)
+进行初始化。形参初始化机理与变量初始化一样。概括的说，一共有3种方式传递参数。
+** Passing arguments by value
+使用这种方式传值时，形参会拷贝实参的值(如果是类类型，则调用复制构造函数),形参与
+实参是两个不同的对象，因此在函数中对形参的改变不会影响到实参的值。而此时形参为局部变
+量，作用域只有在函数体内有效，当函数返回后所有函数体内定义的局部变量都会被销毁。
+*Pros and cons of pass by value*
+
+Advantages of passing by value:
+
+    - Arguments passed by value can be variables (e.g. x), literals (e.g. 6),
+      expressions (e.g. x+1), structs & classes, and enumerators. In other
+      words, just about anything.
+
+    - Arguments are never changed by the function being called, which prevents
+      side effects.
+
+Disadvantages of passing by value:
+
+    - Copying structs and classes can incur a significant performance penalty,
+      especially if the function is called many times.
+
+When to use pass by value:
+
+    - When passing fundamental data type and enumerators, and the function does
+      not need to change the argument.
+
+When not to use pass by value:
+
+    - When passing structs or classes (including std::array, std::vector, and
+      std::string).
+
+In most cases, pass by value is the best way to accept parameters of fundamental
+types when the function does not need to change the argument. Pass by value is
+flexible and safe, and in the case of fundamental types, efficient.
+** Passing arguments by reference
+以这种方式传递实参可以避免拷贝，形参只是形参的别名，在函数中对形参的操作实际是对
+实参的操作，所以如果不希望函数改变实参的话，请加上 =const= 关键字。我们可以使用
+这种传值方式返回多个输出结果。
+
+*Pros and cons of pass by reference*
+
+Advantages of passing by reference:
+
+    - References allow a function to change the value of the argument, which is
+      sometimes useful. Otherwise, const references can be used to guarantee the
+      function won’t change the argument.
+
+    - Because a copy of the argument is not made, pass by reference is fast,
+      even when used with large structs or classes.
+
+    - References can be used to return multiple values from a function (via out
+      parameters).
+
+    - References must be initialized, so there’s no worry about null values.
+
+Disadvantages of passing by reference:
+
+    - Because a non-const reference cannot be initialized with an const l-value
+      or an r-value (e.g. a literal or an expression), arguments to reference
+      parameters must be normal variables.
+
+    - It can be hard to tell whether a parameter passed by non-const reference
+      is meant to be input, output, or both. Judicious use of const and a naming
+      suffix for out variables can help.
+
+    - It’s impossible to tell from the function call whether the argument may
+      change. An argument passed by value and passed by reference looks the
+      same. We can only tell whether an argument is passed by value or reference
+      by looking at the function declaration. This can lead to situations where
+      the programmer does not realize a function will change the value of the
+      argument.
+
+
+When to use pass by reference:
+
+    - When passing structs or classes (use const if read-only).
+    - When you need the function to modify an argument.
+    - When you need access to the type information of a fixed array.
+
+When not to use pass by reference:
+
+    - When passing fundamental types that don’t need to be modified (use pass by value).
+
+** Passing arguments by address
+这种传值方式兼具以上两种的特点：形参拷贝实参的值(地址),形参会改变实参指向的对象。
+既然发生了拷贝，那么形参与实参是两个不同的变量，形参的变化不影响实参，但是对于它
+们指向的对象来说，只是多了一个指向它的指针。函数返回后，形参指针被销毁。
+
+我们也可以把形参设计为指针的引用来避免创建新的变量，使得形参与实参为同一个对象。
+Pros and cons of pass by address
+
+Advantages of passing by address:
+
+    - Pass by address allows a function to change the value of the argument,
+      which is sometimes useful. Otherwise, const can be used to guarantee the
+      function won’t change the argument. (However, if you want to do this with
+      a non-pointer, you should use pass by reference instead).
+
+    - Because a copy of the argument is not made, it is fast, even when used
+      with large structs or classes.
+
+    - We can return multiple values from a function via out parameters.
+
+Disadvantages of passing by address:
+
+    - Because literals and expressions do not have addresses, pointer arguments
+      must be normal variables.
+
+    - All values must be checked to see whether they are null. Trying to
+      dereference a null value will result in a crash. It is easy to forget to
+      do this.
+
+    - Because dereferencing a pointer is slower than accessing a value directly,
+      accessing arguments passed by address is slower than accessing arguments
+      passed by value.
+
+When to use pass by address:
+
+    - When passing built-in arrays (if you’re okay with the fact that they’ll
+      decay into a pointer).
+
+    - When passing a pointer and nullptr is a valid argument logically.
+
+When not to use pass by address:
+
+    - When passing a pointer and nullptr is not a valid argument logically (use
+      pass by reference and dereference the pointer argument).
+
+    - When passing structs or classes (use pass by reference).
+    - When passing fundamental types (use pass by value).
+
+As you can see, pass by address and pass by reference have almost identical
+advantages and disadvantages. Because pass by reference is generally safer than
+pass by address, pass by reference should be preferred in most cases.
+
+/Rule: Prefer pass by reference to pass by address whenever applicable./
+
+** Examples
+当数组作为形参时是需要特别强调的，因为数组不允许拷贝所以不能使用传值传递，因为数
+组名会转变为指向头元素的指针，所以当我们为函数传递一个数组时，实际传递的是一个指
+针。因此下面三个函数是等价的：
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+void print(const int*);
+void print(const int []);
+void print(const int[10]); //这里的维度是我们期望的，实际不一定
+#+END_SRC
+因为数组是以指针的形式传递给函数的，因此必须还要向函数提供数组的维度信息，可以使
+用如下的方法：
+1. 使用标准库规范
+使用标准库中的 =std::begin()= 和 =std::end()= 获得数组的首迭代器和尾后迭代器，将
+这两个迭代器传入函数。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  int j[2]{1,2};
+  void print(int* beg,int*end)
+  {
+      while(beg != end)
+      {
+          cout << *beg++ << endl;
+      }
+  }
+print(begin(j),end(j));
+#+END_SRC
+2. 显式传递一个表示数组大小的形参
+在C 程序和过去的C++语言中常用这种方法。
+
+
+下面是一个利用数组的引用避免数组作为形参会退化为指针的例子：
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <iostream>
+
+  // Note: You need to specify the array size in the function declaration
+  void printElements(int (&arr)[4])
+  {
+    int length{ sizeof(arr) / sizeof(arr[0]) }; // we can now do this since the array won't decay
+
+    for (int i{ 0 }; i < length; ++i)
+    {
+      std::cout << arr[i] << " ";
+    }
+  }
+
+  int main()
+  {
+      int arr[]{ 99, 20, 14, 80 };
+
+      printElements(arr);
+
+      return 0;
+  }
+#+END_SRC
+
+#+RESULTS:
+: 99 20 14 80
+
+上面的例子缺点是只能传递固定维度的数组，如果想要传递任意维度的数组可以使用函数模
+板。
+*传递多维数组*
+和所有数组一样，当传递多维数组时真正传递的是指向首元素的指针，因为我们传递的是数
+组的数组，所以首元素本身就是一个数组，指针就是 _一个指向数组的指针_ 。数组第二维(以
+及后面的所有维)的大小都是数组类型的一部分，不能省略。因此下面的函数是等价的：
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+void print(int (*matrix)[10],size_t row);
+void print(int matrix[][10],size_t row);
+#+END_SRC
+
+* 结果返回
+当函数返回调用者处的时候需要调用 =return= 语句(隐式或显式),无返回值函数在函数最
+后会隐式的加上 =return;= 语句，如果想从函数中间退出，则需要在适当的位置显式调用
+=return=.
+以下将重点研究有返回值的函数。
+As it turns out, returning values from a function to its caller by value,
+address, or reference works almost exactly the same way as passing parameters to
+a function does. All of the same upsides and downsides for each method are
+present. The primary difference between the two is simply that the direction of
+data flow is reversed. However, there is one more added bit of complexity --
+because local variables in a function go out of scope and are destroyed when the
+function returns, we need to consider the effect of this on each return type.
+
+**  return by value
+When a value is returned by value, a copy of that value is returned to the
+caller.
+
+When to use return by value:
+
+- When returning variables that were declared inside the function
+- When returning function arguments that were passed by value
+
+When not to use return by value:
+
+- When returning a built-in array or pointer (use return by address)
+- When returning a large struct or class (use return by reference)
+
+** return by address
+不可以返回局部变量的地址，因为局部变量在函数返回后就销毁了，因此它原来的地址变成
+非法地址，返回这样的地址给调用者再解引用会导致程序出错。
+但是如果在函数内部动态申请的内存空间在函数返回后还是有效的，因为动态内存空间值只
+能通过程序员使用 =delete= 或 =delete[]= 释放。
+
+When to use return by address:
+
+- When returning dynamically allocated memory
+- When returning function arguments that were passed by address
+
+When not to use return by address:
+
+- When returning variables that were declared inside the function (use return by value)
+- When returning a large struct or class that was passed by reference (use return by reference)
+
+** return by reference
+ng oSimilar to pass by address, values returned by reference must be variables (you
+should not return a reference to a literal or an expression that resolves to a
+temporary value, as those will go out of scope at the end of the function and
+you’ll end up returning a dangling reference).When a variable is returned by
+reference, a reference to the variable is passed back to the caller. The caller
+can then use this reference to continue modifying the variable.
+When to use return by reference:
+
+    - When returning a reference parameter
+    - When returning an element from an array that was passed into the function
+    - When returning a large struct or class that will not be destroyed at the end of the function (e.g. one that was passed in)
+
+When not to use return by reference:
+
+    - When returning variables that were declared inside the function (use return by value)
+    - When returning a built-in array or pointer value (use return by address)
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+int returnByValue()
+{
+    return 5;
+}
+
+int& returnByReference()
+{
+     static int x = 5; // static ensures x isn't destroyed when the function ends
+     return x;
+}
+
+int main()
+{
+    int value = returnByReference(); // case A -- ok, treated as return by value
+    int &ref = returnByValue(); // case B -- compile error since the value is an r-value, and an r-value can't bind to a non-const reference
+    const int &cref = returnByValue(); // case C -- ok, the lifetime of the return value is extended to the lifetime of cref
+}
+#+END_SRC
+
+** Examples
+返回数组指针
+因为数组不能拷贝，因此不能直接返回数组，需要返回数组的指针或引用.回想一下我们如
+何声明指向数组的指针：
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+int arr[10]{0};
+int (*parr)[10] = &arr; //parr 是指向一个具有10个整型元素的指针， *parr 两边的圆括号必不可少
+#+END_SRC
+与声明一个指向数组的指针变量类似，我们声明一个返回数组的指针或引用的函数采用如下
+的形式：
+: Type (*function(parameter_list)) [dimension];
+: Type (&function(parameter_list)) [dimension];
+可以看到，我们用函数的名字和形参列表替代了原来指针名称的位置，比如：
+: int (*func(int i)) [10];
+我们声明了一个函数，我们可以按照下面的顺序逐层理解该声明的含义：
+- ~func(int i)~ 表示调用函数时需要一个整型实参
+- ~*func(int i)~ 表示我们可以对函数调用的结果执行解引用
+- ~(*func(int i))[10]~ 表示解引用函数调用将得到一个大小为10的数组
+- ~int (*func(int i))[10]~ 表示数组的元素是 ~int~ 类型
+这是直接定义了一个返回数组指针的方法，这种方法写起来比较麻烦，我们有以下几种办法
+来简化这一任务。
++ 使用类型别名 :: 这是最常用的方法。比如上面的例子可以简化为：
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  typedef int arrT[10] ;
+  // using arrT = int[10]; //arrT 的等价声明
+  arrT* func(int i);
+#+END_SRC
+
++ 使用尾置返回类型 :: 这是C++11的新特性，任何函数都可以使用尾置返回(trailing
+              return type),但是用在返回类型复杂的函数上最有效。使用方法是在原来
+              返回类型的地方放置一个 ~auto~, 真正的返回类型跟在形参列表后面并且
+              以 ~->~ 开头。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+auto func(int i) -> int(*)[10];
+#+END_SRC
++ 使用decltype :: 如果我们知道函数返回的指针将指向哪个数组，就可以使用
+                ~decltype~ 关键字获取返回类型
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  int odd[]{1,3,5,7,9};
+  int even[]{2,4,6,8,0};
+  decltype(odd) *arrPtr(int i)
+  {
+      return (i%2)?&odd:&even;
+  }
+#+END_SRC
+
+* 函数重载
+函数重载是C++的一个特性，这个特性使得我们可以使用一个函数名创建多个函数，只要它
+们的形参列表不同，而我们并不能将返回类型作为区分函数重载的依据（Put another way,
+we can always determine which version of a function will be called based solely
+on the arguments. If return values were included, then we wouldn’t have an easy
+syntactic way to tell which version of a function was being called）
+
+** 判断两个形参的类型是否相异
++ 类型别名 :: 别名不能引入一个新的类型，因此别名不能作为重载函数
++ const形参 :: 顶层const 不影响传入函数的对象，一个拥有顶层const 的形参无法与另一
+  个没有顶层const 的形参区分开，而一个拥有底层const 的形参可以与另一个没有底层
+             const 的形参区分开。
+
+** 内联函数
+我们可以将一些代码较小的函数声明尾内联函数，只要在函数最前面加上 =inline= 即可，
+内联函数可以避免普通函数在调用时的开销，比如调用前要先保存寄存器并在返回时恢复，
+可能需要拷贝实参，程序转向一个新的位置继续执行等。编译器可以选择忽略我们将一个函
+数作为一个内联函数使用。编译器不会去编译内联函数，而只是将它在每个调用点上“内联”
+的展开，因此内联函数可以定义在头文件中。Inline functions are exempt
+from the rule that you can only have one definition per program, because of the
+fact that inline functions do not actually result in a real function being
+compiled -- therefore, there’s no conflict when the linker goes to link multiple
+files together.
+
+* 函数指针
+由于函数在程序内存中也是有地址的，因此我们可以定义函数指针指向函数。 *函数的类型由
+它的返回类型和形参类型共同决定，与函数名无关*  在指向不同函数类型的指针间不存在转
+换规则，但是当函数指针不指向任何函数时我们可以给它赋值 =nullptr=.
+
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <iostream>
+  #include <string>
+  #include <functional> //std::function
+  void print(const std::string& str)
+  {
+      std::cout << str << "\n";
+  }
+
+  //1 直接使用函数类型定义函数指针
+  void (*pf)(const std::string&);
+  void (*const cpf)(const std::string&) = print;
+
+  //2 为函数类型取别名，可以直接用别名定义函数指针，并指向正确的函数，方便书写和理解
+  //2.1 获得函数指针， PT是一个指向函数的指针
+  // typedef void (*PT) (const std::string& str);
+  // using PT = void (*)(const std::string&);
+  //2.2 获得函数类型， P 是一个函数类型
+  //  typedef void P(const std::string&);
+  //  using P = void(const std::string&);
+  //3 通过decltype关键字获取函数类型，并为其取别名
+  // typedef decltype(print) *PT;
+  using PT = decltype(print)*;
+
+  int main(int argc, char *argv[])
+  {
+      cpf("This is cpf!");
+      pf = print;
+      pf("This is pf!");
+      PT pt;
+      pt = print;
+      pt("THis is pt");
+  //直接使用decltype 定义函数指针
+      decltype(print) *dpt;
+      dpt = print;
+      dpt("THis is dpt!");
+  //使用std::function
+      std::function<void(const std::string&)> fpf;
+      fpf = print;
+      fpf("This is fpf!");
+  }
+#+END_SRC
+
+#+RESULTS:
+: This is cpf!
+: This is pf!
+: THis is pt
+: THis is dpt!
+: This is fpf!
+函数 ~print~ 的类型是 =void(const std::string&)=,类似于普通的数据类型，比如 =double=,
+对于这样一个简单的函数，每次写函数类型还是可以接受的，毕竟不算太麻烦，但如果一个
+具有复杂返回类型和形参列表的函数，每次都写完整的类型不仅写起来麻烦，而且不容易理
+解，最重要的是很容易出错，因此我们可以用以下方法来简化函数类型：
++ 类型别名 :: 使用 =typedef= 或者 =using= 来为函数类型取别名。
++ decltype :: 在C++11中可以使用 =decltype= 关键字获取某个函数的类型。
++ std::function :: 在C++11中还可以使用 =std::function= 方法来定义和存储函数指针
+** 函数指针形参
+我们应该在心理有这样一个概念，将函数与对象对应起来：函数类型对应数据类型，函数名
+对应对象名。既然我们能把数据类型作为函数形参，那么也能把函数类型作为另一个函数的
+形参，我们把这样的函数叫做回调函数 (callback funciton).函数指针形参也可以有默认
+值。下面以一个排序算法的改进来说明回调函数的用法：
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <algorithm> // for std::swap, use <utility> instead if C++11
+  #include <iostream>
+  void SelectionSort(int *array, int size)
+  {
+      // Step through each element of the array
+      for (int startIndex = 0; startIndex < size; ++startIndex)
+      {
+          // smallestIndex is the index of the smallest element we've encountered so far.
+          int smallestIndex = startIndex;
+
+          // Look for smallest element remaining in the array (starting at startIndex+1)
+          for (int currentIndex = startIndex + 1; currentIndex < size; ++currentIndex)
+          {
+              // If the current element is smaller than our previously found smallest
+              if (array[smallestIndex] > array[currentIndex]) // COMPARISON DONE HERE
+                  // This is the new smallest number for this iteration
+                  smallestIndex = currentIndex;
+          }
+
+          // Swap our start element with our smallest element
+          std::swap(array[startIndex], array[smallestIndex]);
+      }
+  }
+  // This function prints out the values in the array
+  void printArray(int *array, int size)
+  {
+      for (int index=0; index < size; ++index)
+          std::cout << array[index] << " ";
+      std::cout << '\n';
+  }
+
+  int main(int argc, char *argv[])
+  {
+      int array[9] = { 3, 7, 9, 5, 6, 1, 8, 2, 4 };
+      SelectionSort(array, 9);
+      printArray(array,9);
+      return 0;
+  }
+#+END_SRC
+
+#+RESULTS:
+: 1 2 3 4 5 6 7 8 9
+本例的 =SelectionSort= 函数只有一个功能，就是按递增的方式对数组排序，如果我们想
+要一个按递减方式对数组排序的函数那就只能重新写一个递减的版本，当我们使用了函数指
+针以后，我们可以不必重新写 =SelectionSort= 函数，而只要改变比较的方式即可。思路
+就是写一个比较函数(递增或递减),然后将比较函数传入 =SelectionSort=,替换掉原函数中
+的比较语句，这样我们就可以使用自己版本的比较函数，我们甚至还可以写更多的比较函数
+传入排序函数中，这样大大增大了代码的灵活性和可重用性。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+#include <algorithm> // for std::swap, use <utility> instead if C++11
+#include <iostream>
+
+// Note our user-defined comparison is the third parameter
+void selectionSort(int *array, int size, bool (*comparisonFcn)(int, int))
+{
+    // Step through each element of the array
+    for (int startIndex = 0; startIndex < size; ++startIndex)
+    {
+        // bestIndex is the index of the smallest/largest element we've encountered so far.
+        int bestIndex = startIndex;
+
+        // Look for smallest/largest element remaining in the array (starting at startIndex+1)
+        for (int currentIndex = startIndex + 1; currentIndex < size; ++currentIndex)
+        {
+            // If the current element is smaller/larger than our previously found smallest
+            if (comparisonFcn(array[bestIndex], array[currentIndex])) // COMPARISON DONE HERE
+                // This is the new smallest/largest number for this iteration
+                bestIndex = currentIndex;
+        }
+
+        // Swap our start element with our smallest/largest element
+        std::swap(array[startIndex], array[bestIndex]);
+    }
+}
+
+// Here is a comparison function that sorts in ascending order
+// (Note: it's exactly the same as the previous ascending() function)
+bool ascending(int x, int y)
+{
+    return x > y; // swap if the first element is greater than the second
+}
+
+// Here is a comparison function that sorts in descending order
+bool descending(int x, int y)
+{
+    return x < y; // swap if the second element is greater than the first
+}
+
+// This function prints out the values in the array
+void printArray(int *array, int size)
+{
+    for (int index=0; index < size; ++index)
+        std::cout << array[index] << " ";
+    std::cout << '\n';
+}
+
+int main()
+{
+    int array[9] = { 3, 7, 9, 5, 6, 1, 8, 2, 4 };
+
+    // Sort the array in descending order using the descending() function
+    selectionSort(array, 9, descending);
+    printArray(array, 9);
+
+    // Sort the array in ascending order using the ascending() function
+    selectionSort(array, 9, ascending);
+    printArray(array, 9);
+
+    return 0;
+}
+#+END_SRC
+
+#+RESULTS:
+: 9 8 7 6 5 4 3 2 1
+: 1 2 3 4 5 6 7 8 9
+
+** 返回指向函数的指针
+和数组类似，虽然不能返回一个函数，但是能返回指向函数类型的指针。
