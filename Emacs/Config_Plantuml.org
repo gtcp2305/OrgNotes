@@ -5,7 +5,7 @@
 :PROPERTIES:
 :ID:       aeb5b860-f2c3-43c9-8e6e-2475bc5c1cb3
 :END:
-1. Download [[http://www.oracle.com/technetwork/java/javase/downloads/index.html][JRE]].
+1. Download [[https://www.java.com/en/download/linux_manual.jsp][JRE]].
 2. tar -zxvf jre...
 3. edit /profile/:
    - nano etc/profile
@@ -54,3 +54,6 @@ add these to .emacs or init.el
 :PROPERTIES:
 :ID:       9deade7e-0ab4-4159-8ee9-942dc4ba9c64
 :END:
+* Reference:
+http://www.alvinsim.com/diagrams-with-plantuml-and-emacs/
+http://plantuml.com/starting

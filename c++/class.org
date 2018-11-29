@@ -1,0 +1,85 @@
+# #+INCLUDE: /home/ttt/.templates/NoteConfig.org
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="/home/ttt/OrgNotes/css/worg.min.css"/>
+
+#+TITLE: Class
+#+Author:
+#+Email:
+#+DATE:  2018-11-22
+类的名称通常首字母大写；数据成员通常前缀‘m_’，用来区别函数形参和函数的局部变量；
+数据成员、成员函数、类型成员，类型成员通常出现在类开始的地方
+在类中定义的成员包括：data member,member function and type member.其中data
+member 包括non-static 和 static;member function 包括non-static,static,virtual.
+在面向对象编程中，数据封装(encapsulation)是指将对象的实现细节隐藏起来，用户通过
+公共的接口来使用类。
+那么C++在数据封装后布局成本会增加么？答案是不会，因为在每一个class object 中都只
+包含non-static data member,就像C struct 一样，而member function 虽然含在class 声
+明之内，却不出现在object 之中，每一个non-inline member function 只会产生一个函数
+实体，至于每一个”拥有零个或一个定义”的inline function 则会在每一个使用者(模块，
+翻译单元)中产生一个函数实体。C++在布局及存取时间上主要的额外负担主要是由 virtual
+引起的，包括：
+- virtual function 机制 用来支持一个有效率的执行期绑定
+- virtual base class 用来实现“多次出现在继承体系中的bass class 有一个单一而被共
+  享的实体”
+* c++ object model
+:PROPERTIES:
+:ID:       58bc05f0-0a6b-48f8-9f13-53959ef7701c
+:END:
+已知下面这个声明，我们在使用 =Point= 新建对象的时候，这个对象在内存中是如何表现
+的？
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  class Point
+  {
+  public:
+      Point(double xval);
+      virtual ~Point();
+
+      double x()const;
+      static int PointCount();
+
+  protected:
+      virtual ostream& print(ostream &os) const;
+      double m_x;
+      static int m_point_count;
+  };
+#+END_SRC
+在C++对象模型中，对待data member 和 member function 有以下几种情况：
+- data member
+  + static data member :: 存放在所有class object 之外
+  + non-static data member :: 每一个class object 内都有
+- member function
+  + static/non-static function :: 存放在所有class object 之外
+  + virtual function :: 一两个步骤支持之：
+    - 每一个class 产生出一堆指向 virtual functions 的指针，放在表格之中，这个表
+      格叫做 virtual table(*vtbl*)
+    - 每一个class object 被添加了一个指针，指向相关的 virtual table.通常这个指针
+      称为 *vptr*,vptr 的设置和重置都由每一个class 的 =constructor=,
+      =destructor= 和 =copy assignment= 运算符自动完成。每一个class所关联的
+      /type_info/ object(用于支持runtime type identifucation,RTTI)也经由 virtual
+      table 被指出来，通常是放在表格的第一个slot处。
+
+因此， =Point= 对象的内存布局应该是这样的：
+#+BEGIN_SRC plantuml :file figures/PointMemeryLayout.png :exports results
+@startditaa
+                                  +--------->+-------------------+
++---------+                       |          +-------------------+
+|m_x      |                       |            type_info
+|---------|                       |
+|vptr     |--------->+-------+----+          +-------------------+
++---------+          +-------+-------------->| Point::~Point()   |
+ Point obj           +-------+------+        +-------------------+
+                     +-------+      |
+                     virtual table  +------->+-----------------------+
+                                             | Point::print(ostream) |
+                                             +-----------------------+
++--------------------+ +---------------------+ +---------------------+
+|static int          | |static int Point::   | |Point::Point(doble)  |
+|Point::m_point_count| |PointCount()         | +---------------------+
++--------------------+ +---------------------+ +--------------------+
+                                               |double Point::x()   |
+                                               +--------------------+
+@endditaa
+#+END_SRC
+所以一个class object需要多少内存?一般而言要有：
+- 其non-static data member 的总和大小
+- 加上任何由于alignment 的需求而填补(padding)上去的空间
+- 加上为了支持 virtual 而由内部产生的任何额外负担。

@@ -1,0 +1,35 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gtcp2305.github.io/css/style1.css"/>
+#+TITLE: Index
+#+Author:
+#+Email:
+#+DATE:  2018-11-27
+* Introduction
+This is my knowledge sitemap and collections.
+* Emacs
+[[http://home.fnal.gov/~neilsen/notebook/orgExamples/org-examples.html][Emacs org-mode examples and cookbook]]
+
+[[http://www.i3s.unice.fr/~malapert/org/tips/emacs_orgmode.html][Yet Another Org-Mode Configuration]]
+
+[[https://orgmode.org/worg/dev/org-build-system.html][Org-mode Build System]]
+
+[[http://pragmaticemacs.com/][Pragmatic Emacs]]
+
+[[http://forrestchang.com/14824097554043.html][使用Emacs Org-mode + GitHub Pages 来写博客]]
+
+[[http://doc.norang.ca/org-mode.html][Org Mode - Organize Your Life In Plain Text!]]
+
+[[https://mudan.github.io/Emacs/The_Org_Manual/The_Org_Manual.html][The Org Manual]]
+
+[[https://blog.csdn.net/garfielder007/article/details/51646604][LaTeX 各种命令，符号]]
+* CG & OpenGL
+[[http://docs.gl/gl3/glVertexAttrib][docs.GL]]
+* C++
+* CMake
+* Others
+[[http://www.cnblogs.com/flipped/][水郁]]
+
+[[https://dirtysalt.github.io/html/index.html][DirtySalt]]
+
+[[http://gen.lib.rus.ec/][Ebooks Download]]
+* Notes
+[[https://gtcp2305.github.io/sitemap.html][My Notes]]

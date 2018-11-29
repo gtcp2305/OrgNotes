@@ -1,5 +1,6 @@
 #+TITLE: Sitemap
 
+- [[file:index.org][Index]]
 - CG
   - [[file:CG/Convex_Hull.org][Convex_Hull]]
 - CSAPP
@@ -17,5 +18,6 @@
   - [[file:OpenGL/01_Baisc.org][Basic OpenGL]]
   - [[file:OpenGL/02_OpenGLProcessing.org][OpenGL 基本工作流程]]
 - c++
+  - [[file:c++/class.org][Class]]
   - [[file:c++/function.org][Function]]
   - [[file:c++/names.org][Names And Memory Layout]]
