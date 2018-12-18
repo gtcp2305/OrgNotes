@@ -1,16 +1,187 @@
-# #+INCLUDE: /home/ttt/.templates/NoteConfig.org
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="/home/ttt/OrgNotes/css/worg.min.css"/>
-
+#+INCLUDE: /home/ttt/.templates/NoteConfig.org
 #+TITLE: Class
 #+Author:
 #+Email:
 #+DATE:  2018-11-22
-类的名称通常首字母大写；数据成员通常前缀‘m_’，用来区别函数形参和函数的局部变量；
-数据成员、成员函数、类型成员，类型成员通常出现在类开始的地方
-在类中定义的成员包括：data member,member function and type member.其中data
-member 包括non-static 和 static;member function 包括non-static,static,virtual.
-在面向对象编程中，数据封装(encapsulation)是指将对象的实现细节隐藏起来，用户通过
-公共的接口来使用类。
+* Primer
+*重要概念1*:数据封装 在面向对象编程中，数据封装(encapsulation)是指将对象的实现细节隐藏起来，用户通过
+公共的接口来使用类。封装是通过访问控制(public,private,protect)实现的。
+
+*rule:*
+1. 类的名称通常首字母大写；
+2. 数据成员通常前缀‘m_’，用来区别函数形参和函数的局部变量；
+在类中定义的成员包括：
+1. data member
+   - non-static(对象属性)
+   - static(类属性)
+2. member function
+   - non-static
+   - static
+   - virtual
+3. type member
+
+其中 data member 是一个类的核心，通常是对外隐藏的，通常需要通过 member function 来操作类的数据成员。非静态的数据成员在每
+一个类对象中都有一个副本，而静态的数据成员只有一个副本，保存在程序的静态存储区，为该类的所有对象所共享。类的成员函数并不
+保存在类的 [[object memory layout][对象的内存]]中 ，后者最多保存指向 vtable 的 vptr ,而这对于[[Polymorphism][多态]]是至关重要的。
+其中类型成员通常出现在类开始的地方 [[class scop]]。
+** 引入this指针
+既然类的对象中不保存成员函数，那么通过对象调用成员函数时，成员函数是如何准确知道是哪个对象调用它，进而获取该对象的数据成
+员的呢？
+答案就是 =this= 指针。在每个non-static member function 中都隐含了一个this指针，用于指向调用它的对象。默认情况下this 指针
+的类型是 =T*const this=,我们不能改变this 中保存的地址。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+A a;
+a.func();  // 等价于： A::func(&a);
+#+END_SRC
+/新的问题：/ 因为this 指针不是一个“指向常量的指针”，如果我们的对象被声明为常量，岂不是会调用出错吗？比如：
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  class A
+  {
+  public:
+      A(){}
+      ~A(){}
+      void test(){}
+  };
+
+  int main(int argc, char *argv[])
+  {
+      const A a;
+      a.test();
+      return 0;
+  }
+
+#+END_SRC
+如果编译的话会报错：
+: error: passing ‘const A’ as ‘this’ argument discards qualifiers [-fpermissive]
+
+那么如何把this 指针变成“指向常量的指针”呢？答案是在函数的形参列表后面、函数体之前添加 =const=,这个 =const= 会使this 指针
+变为 =const T*const this= 类型。因此上例中的 =test()= 应该改写为 =void test()const{}=,这种成员函数又叫做 *常量成员函数*
+(const member function),它们只可以读取调用它们的对象的数据成员，但是不能写入新值。
+*/正是由于 =this= 指针的限制，常量对象，以及常量对象的引用或指针都只能调用常量成员函数/*
+** 类的作用域与名字查找 <<class scop>>
+*** 类的作用域
+一个类就是一个作用域，在类的外部，成员的名字被隐藏起来了，因此当我们在类的外部定义成员函数时必须同时提供类名和函数名，一
+旦遇到类名，定义的剩余部分（参数列表和函数体）其中类的作用域之内了。
+*** 名字查找 (name lookup)
+对于成员函数体中使用的名字：编译器处理完类中的全部声明后才会处理成员函数的定义，所以成员函数可以使用类中定义的任何名字。
+对于声明（包括返回类型和参数列表中）中使用的名字：必须在使用前声明，确保可见。
+1. type member
+   类的type member 在类内可以直接使用，在另外需要通过作用域运算符（::）访问，为了确保type member 在类内可以被所有使用它的成
+   员可见，通常江type member 放在类的开始处。另外还有一点需要特别注意，在类内不能重新定义一个在外层作用域中的名字。
+2. 成员函数中使用的名字按照如下方式解析：
+   - 在成员函数内查找该名字的声明，只有在函数使用之前出现的声明才被考虑
+   - 如果在函数内没找到，则在类内继续查找，这时类的所有成员都可以考虑
+   - 如果类内也没找到，在成员函数定义之前的作用域内继续查找
+** 数据成员的初始化
+类内数据成员的这四个过程是通过四个函数实现的。如果我们没有为类主动定义這些函数，那么编译器将为我们合成一个默认的版本，
+*** 构造函数(Constructor)
+当我们创建一个类的对象时，编译器才会为这个对象分配内存空间并使用构造函数初始化类对象的数据成员，构造函数不能声明为const
+的，因为我们创建一个类的const 对象时，直到构造函数完成初始化过程，对象才能取得其“常量”属性。因此构造函数在const 对象得构
+造过程中可以向其写值。
+**** 默认构造函数
+如果我们没有显式的声明一个构造函数，那么编译器会为我们隐式的定义一个默认构造函数，由编译器创建的默认构造函数又被称为 *合成的默认构造函数*
+(synthesized default constructor),对于大多数类来说，这个合成的默认构造函数将按照如下规则初始化类的数据成员：
+- 如果存在类内初始值，则用它来初始化类的成员
+- 否则默认初始化该成员
+需要注意得是一旦我们定义了一些其它的构造函数，那么除非我们再定义一个默认得构造函数，否则类将没有默认构造函数。我们不能寄
+希望与编译器合成的默认构造函数，因为在一些含有指针或数组成员的类、被包含的类成员中，编译器合成的默认构造函数是无法完成任
+务的，有时候是很无效的和危险的。
+
+当我们自己写默认构造函数时，可以直接空着形参列表，也可以将形参全部带有默认值。默认构造函数的作用：
+当对象被默认初始化或值初始化时自动执行默认构造函数。
+1. 默认初始化
+   - 当我们在块作用域内不使用任何初始值定义一个非静态变量或数组时；
+   - 当一个类本身含有类类型的成员且使用合成的默认构造函数时；
+   - 当类类型的成员没有在构造函数初始化列表中显式的初始化时。
+2. 值初始化
+   - 在数组初始化中如果我们提供的初始值数量少于数组大小时
+   - 当我们不使用初始值定义一个局部静态变量
+   - 当我们通过书写 =T()= 的表达式显式请求值初始化时，其中 =T= 时类型名
+
+**** 初始化数据成员
+构造函数通过 *类内初始值* 或 *初始值列表* 来初始化类的数据成员，而在构造函数的函数体内完成的是赋值操作。
+数据成员的初始化顺序与它们在类中声明的顺序一致。没有出现在初始值列表中的成员将通过相应的类内初始值来初始化，或者执行默认
+初始化。如果一个数据成员既有类内初始值，又出现在初始值列表中，那么初始值列表会覆盖类内初始值。
+**** 特殊成员的初始化
+有时我们可以忽略数据成员初始化和赋值的区别，但并不总是这样，比如成员是const、引用或者某种未提供默认构造函数的类类型，我
+们必须为這些成员提供初值。
+**** 成员初始化顺序
+成员的初始化顺序与其在类内的声明顺序一致，而与在初始化列表中出现的顺序无关。
+**** 委托构造函数 (delegating constructor)
+这是C++11新标准增加的一个功能，一个委托构造函数使用它所属类的其它构造函数执行它自己的初始化过程。受委托的构造函数放在委
+托构造函数的初始化列表位置，在创建对象时，依次执行受委托构造函数的初始化列表和函数体，最后执行委托构造函数的函数体。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  class SalesData{
+  public:
+      // 非委托构造函数使用对应的实参初始化成员
+      SalesData(std::string s,unsigned cnt,double price):m_bookNo(s),m_units_sold(cnt),m_revenue(cn*price){}
+      // 其余的构造函数全部委托给另一个构造函数
+      SalesData():SalesData("",0,0){}
+      SalesData(std::string s):SalesData(s,0,0){}
+      SalesData(std::istream is):SalesData(){read(is,*this);}
+  };
+#+END_SRC
+**** 隐式的类类型转换
+除了c++语言的内置类型之间有自动转换规则以外，我们也可以为类定义隐式转换规则。*如果构造函数只接受一个实参，那我们就可以用
+这种实参来转换为类类型，这种构造函数称为转换构造函数*,这种转换只允许一步类类型转换。
+
+隐式的类类型转换是否有用完全看情况，如果在某些情况下我们不希望这种转换的话，我们可以使用 =explicit= 关键字阻止隐式转换，
+具体做法是在构造函数的声明中使用该关键字，在类外部定义时不应重复写。 =explicit= 构造函数只能用于直接初始化，而不能用于拷
+贝形式的初始化（使用＝）。
+
+虽然编译器不会将 =explicit= 构造函数用于隐式类型转换过程，但是我们可以使用这样的构造函数显式的强制进行转换。
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <iostream>
+  #include <string>
+
+  class SalesData{
+  public:
+      // 非委托构造函数使用对应的实参初始化成员
+      SalesData(std::string s,unsigned cnt):              // #1
+          m_bookNo(s),m_units_sold(cnt){}
+      // 其余的构造函数全部委托给另一个构造函数
+      SalesData():SalesData("",0){}                       // #2
+      explicit SalesData(std::string s):SalesData(s,0){}  // #3
+      SalesData(unsigned u):SalesData("",u){}             // #4
+
+      std::string getBookNo() const{return m_bookNo;}
+      unsigned getUnitsSold() const{return m_units_sold;}
+
+  private:
+      std::string m_bookNo;
+      unsigned m_units_sold;
+  };
+
+  void printValue(const SalesData& item){
+      std::cout<<"m_bookNo: "     <<item.getBookNo() <<"\n"
+               <<"m_units_sold: "<<item.getUnitsSold() <<"\n";
+  }
+
+  int main(int argc, char *argv[])
+  {
+      std::cout << "Implicit convertion using #4:\n";
+      printValue(2);
+      std::cout << "#3 don't allow implicit convertion:\n";
+      printValue(SalesData(std::string("Test")));
+      printValue(static_cast<SalesData>(std::string("explicit conversion using static_cast")));
+
+      SalesData sd(2); // or SalesData sd = 2; is aloowed.
+      SalesData sd1(std::string("TEST"));  //SalesData sd = std::string("TEST"); is not allowed!
+
+      return 0;
+  }
+#+END_SRC
+
+#+RESULTS:
+: Implicit convertion using #4:
+: m_bookNo:
+: m_units_sold: 2
+: #3 don't allow implicit convertion:
+: m_bookNo: Test
+: m_units_sold: 0
+: m_bookNo: explicit conversion using static_cast
+: m_units_sold: 0
+
 那么C++在数据封装后布局成本会增加么？答案是不会，因为在每一个class object 中都只
 包含non-static data member,就像C struct 一样，而member function 虽然含在class 声
 明之内，却不出现在object 之中，每一个non-inline member function 只会产生一个函数
@@ -20,7 +191,98 @@ member 包括non-static 和 static;member function 包括non-static,static,virtu
 - virtual function 机制 用来支持一个有效率的执行期绑定
 - virtual base class 用来实现“多次出现在继承体系中的bass class 有一个单一而被共
   享的实体”
-* c++ object model
+*** 赋值
+赋值运算符放在运算符重载里讲。
+*** 销毁
+该函数控制销毁对象时发生的行为
+** 字面值常量类
+** 静态成员
+类的静态成员具有静态生存期，存在与任何对象之外，每一个类都只有一个静态数据成员，所有该类的对象都共享该类的静态数据成员；
+类似的类的静态成员函数也不能与任何对象绑定在一起，它们 *不包含* =this= 指针，因此静态成员函数不能声明成 =const= 的，而且
+也不能使用 =this= 指针。
+*** 使用类的静态成员
+我们可以使用作用域运算符(::)来直接访问静态成员(public)，也可以通过类的对象、引用、指针来访问静态成员。
+*** 定义静态成员
+我们既可以在类的内部也可以在类的外部定义静态成员函数，当在类外部定义静态成员的时候，不能重复 =static= 关键字，该关键字只
+出现在类内部的声明语句。
+
+因为静态数据成员不属于类的任何一个对象，所以它们不是在创建类的对象时被定义的，这意味着它们不是由类的构造函数初始化的。通
+常情况下我们必须在类的外部定义和初始化每个静态成员。例外情况是静态常量整型数据可以在类内初始化，然后在类的外部定义一下该
+成员。
+*** 静态成员与普通成员的比较
+由于静态成员独立于对象，因此在某些非静态数据成员可能非法的场合，静态成员却可以正常使用。比如：
++ 静态数据成员可以是不完全类型，特别的可以是它所属的类类型，而非静态数据成员必须声明为它所属类的指针或引用。
++ 静态数据成员可以用作默认实参，而非静态数据成员不可以。
+** 拷贝
+拷贝构造函数的第一个参数必须是一个自身类类型的引用(通常是const引用),且额外参数都有默认值。如果我们没有为类主动定义拷贝构
+造函数，编译器会为我们定义一个，称为合成拷贝构造函数，它从给定的对象中依次将每个非const 成员拷贝到正在创建的对象中。
+*** 拷贝初始化
+拷贝初始化和直接初始化都发生在对象的初始化阶段，直接初始化就是编译器使用参数来匹配构造函数(包括拷贝构造函数);拷贝初始化时，编译器使用＝运
+算符右边的对象拷贝到正在创建的对象中，如果需要的话，还会进行类型转换。
+
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  //直接初始化
+  string dots(10,'.');
+  string s(dots);
+  //拷贝初始化
+  string s2 = dots;
+  string null_book = "9-999-99999-9";
+  string nines = string(100,'9');
+#+END_SRC
+
+对象在以下几种情况下会调用拷贝构造函数：
+ - 当我们以一个类的对象去初始化该类的另一个对象时
+ - 当我们以传值的方式为函数传递或返回一个对象时
+ - 执行拷贝初始化时（有时也会用移动构造函数）
+ - 用花括号列表初始化一个数组中元素或一个聚合类中的成员
+当初始化标准库容器或是调用其 =insert= 或 =push= 成员时，容器中保存的实际上是一个副本，这个副本就是通过拷贝构造函数获得的；
+与之相对，用 =emplace= 成员创建的元素都进行直接初始化。
+**** 合成拷贝构造函数
+由编译器合成的拷贝构造函数会将其参数的成员逐个拷贝到正在创建的对象中(不包括static成员),
+*** 拷贝赋值运算符
+拷贝赋值发生在对象的赋值阶段。如果类没有定义自己的拷贝赋值运算符，那么编译器会为它合成一个。合成的拷贝赋值运算符会将右侧
+运算对象的每个非static 成员赋值给左侧运算对象的对应成员，这一工作是通过成员类型的拷贝赋值运算符来完成的。
+*** 析构函数
+析构函数执行与构造函数相反的操作：构造函数初始化对象的非static 数据成员，还可能在函数体中做一些其它工作；析构函数释放对
+象使用的资源，并销毁对象的非static 数据成员。在一个析构函数中，首先执行函数体，然后按照初始化的逆序销毁成员。销毁类类型
+的成员会调用它们自己的析构函数，内置类型没有析构函数，因此销毁内置类型成员什么也不需要做。析构函数体自身不会不会直接销毁
+成员，成员的销毁是在隐含的析构阶段进行的，函数体时作为成员销毁步骤之外的一部分进行的。需要特别说明的是，对于动态分配的内
+存，只有使用 =delete= 显式要求释放空间时，类类型的对象才会自动调用其析构函数。
+**** 合成析构函数
+当一个类没有定义一个自己的析构函数时，编译器会为它定义一个合成析构函数，合成析构函数的函数体为空。
+*** 三/五法则
+1. 有三个基本操作可以控制类的拷贝操作：拷贝构造函数，拷贝赋值运算符和析构函数。在C++11新标准下还有移动构造函数和移动赋值
+   运算符。
+2. 需要析构函数的类也需要拷贝和赋值操作
+3. 需要拷贝操作的类也需要赋值操作，反之亦然
+*** 使用 =default
+我们可以对具有合成版本的成员函数（默认构造函数或拷贝控制成员）使用 ~=default~ 来显式的要求编译器合成相应的函数的默认版本。
+当我们在类内用 ~=default~ 修饰成员的声明时，合成的函数将隐式的声明为内联的，如果我们不希望合成的成员是内联函数，应该只对
+成员的类外定义使用 ~=default~.
+*** 阻止拷贝
+有些类可能不希望发生拷贝，比如iostream,那么如何阻止类对象的拷贝呢？主要有以下两种：
+1. private 拷贝控制
+
+   在C++11之前，可以通过声明（但不定义）private 的拷贝构造函数、赋值运算符来阻止任何拷贝该类型对象的企图：试图拷贝对象的用
+   户代码在编译阶段被标记为错误；成员函数或友元函数中的拷贝操作将会导致链接时错误。
+2. 定义删除的函数
+
+   在新标准下，我们可以通过将拷贝构造函数和赋值运算符定义为删除的函数来阻止拷贝，删除的函数：虽然我们声明了它，但不能以
+   任何方式使用它。在函数的参数列表后加上 ~=delete~ 来指出我们希望将它定义为删除的。我们可以将除析构函数外的任何函数指定
+   为删除的。
+
+需要特别注意的是，如果一个类有数据成员不能默认构造、拷贝、赋值或销毁，则该类的对应的成员函数（构造、拷贝构造、赋值运算符
+和析构函数）的合成版本将被定义为删除的。
+*** 拷贝控制和资源管理
+一个类的对象在拷贝时，它的行为看起来要么像一个值，要么像一个指针。像值意味着每个对象都有自己的独立的状态，改变副本不会影
+响原对象，反之亦然；像指针则说明类的对象共享状态，副本和原对象使用相同的底层数据，改变副本会影响原对象，反之亦然。我们如
+何拷贝指针成员决定了类在拷贝时是像值还是像指针：如果我们拷贝的是指针所指向的对象，那么类像值；，如果拷贝的是指针本身，那么
+类像指针。需要特别注意的是，如果我们定义一个像指针的类，最好的方法是使用智能指针 =shared_ptr=,因为它会帮我们管理何时销毁
+指针，否则我们需要在类中定义一个计数器。
+*** TODO 交换操作
+*** 动态内存管理类
+
+* Inside
 :PROPERTIES:
 :ID:       58bc05f0-0a6b-48f8-9f13-53959ef7701c
 :END:
@@ -32,7 +294,6 @@ member 包括non-static 和 static;member function 包括non-static,static,virtu
   public:
       Point(double xval);
       virtual ~Point();
-
       double x()const;
       static int PointCount();
 
@@ -42,6 +303,7 @@ member 包括non-static 和 static;member function 包括non-static,static,virtu
       static int m_point_count;
   };
 #+END_SRC
+** C++对象模型的内存布局介绍 <<object memory layout>>
 在C++对象模型中，对待data member 和 member function 有以下几种情况：
 - data member
   + static data member :: 存放在所有class object 之外
@@ -83,3 +345,5 @@ member 包括non-static 和 static;member function 包括non-static,static,virtu
 - 其non-static data member 的总和大小
 - 加上任何由于alignment 的需求而填补(padding)上去的空间
 - 加上为了支持 virtual 而由内部产生的任何额外负担。
+
+** 多态的实现 <<Polymorphism>>
