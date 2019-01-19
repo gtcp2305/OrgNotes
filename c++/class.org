@@ -460,12 +460,6 @@ C++实现动态绑定的条件有三个：
 如果一个类含有一个或多个虚基类，那么将被分为两部分：一个不变局部和一个共享局部。不变局部中的数据不管后继如何演化，总是有
 固定的offset(从object 的开头算起),所以这一部分可以直接存取；至于共享部分就是虚基类的部份，其位置会因为每次的派生操作而有
 变化，所以它们只可以被间接存取，
-** 成员函数
-c++成员函数分为static,non-static,virtual 三种类型，每一种类型的调用方式都不同。
-*** Non-static member function
-C++的涉及准则之一就是non-static member function 至少必须和一般的nonmember function 有相同的效率
-*** static member function
-*** virtual member function
 ** 初始化
 初始化放在构造函数（包括拷贝构造函数）中，如果一个类是通过继承得到的，那么这个类的构造过程在继承体系中是从上到下、从最顶
 端到最底端的过程：
@@ -479,3 +473,19 @@ C++的涉及准则之一就是non-static member function 至少必须和一般�
 
 ** 销毁
 如果类支持 virtual 特性，析构函数会抹销 vptr,析构函数的调用次序与构造函数正好相反：从派生类开始一直到最上层的基类。
+* Member Function
+c++成员函数分为static,non-static,virtual 三种类型，每一种类型的调用方式都不同。
+** Non-static member function
+C++的涉及准则之一就是non-static member function 至少必须和一般的nonmember function 有相同的效率。编译器会将member
+function 内化为nonmember function 形式，步骤如下：
+1. 改写函数原型，安插一个额外的参数到参数列表作为第一个参数，用以提供一个存取管道，使函数知道是哪个类的对象在调用它，该
+   额外参数被称为this 指针，该指针为top-leval const
+2. 将每一个“对nonstatic data member的存取操作”改为经由this 指针来存取
+3. 将非静态成员函数重新写成一个外部函数，对函数名称进行“mangling”处理，使它在程序中变成独一无二的符号。
+** static member function
+静态成员函数的主要特性是它没有this 指针，以下的次要特性都根源于它的主要特性：
+- 它不能直接存取其class中的non-static members
+- 它不能被声明为const,volatile 或 virtual
+- 它不需要经过class object调用
+由于静态成员函数没有this 指针，因此差不多等同于nonmember function.
+** virtual member function
