@@ -14,6 +14,7 @@ This is my knowledge sitemap and collections.
 [[http://doc.norang.ca/org-mode.html][Org Mode - Organize Your Life In Plain Text!]]
 [[https://mudan.github.io/Emacs/The_Org_Manual/The_Org_Manual.html][The Org Manual]]
 [[https://blog.csdn.net/garfielder007/article/details/51646604][LaTeX 各种命令，符号]]
+[[http://members.optusnet.com.au/~charles57/GTD/org_dates/][using dates & times in Emacs Org-mode]]
 * CG & OpenGL
 [[http://docs.gl/gl3/glVertexAttrib][docs.GL]]
 * C++
@@ -21,6 +22,7 @@ This is my knowledge sitemap and collections.
 [[https://timsong-cpp.github.io/cppwp][Working Draft,Standard for Programming Language C++]]
 [[https://www.bogotobogo.com][BogoToBogo]]
 * CMake
+[[https://cgold.readthedocs.io/en/latest/][CGold CMake Web Tutorial]]
 * Ebooks
 [[http://gen.lib.rus.ec][Library Genesis]]
 
