@@ -80,14 +80,14 @@ C 预言标准并没有明确定义对于有符号数应该使用哪种类型的
 * Integer Representations
 整数分为有符号整数和无符号整数两种。
 ** 整型数据类型
-| C Data type      | 64-bit size(byte) | 32-bit size(byte) |
-|------------------+-------------------+-------------------|
-| (unsigned)char   |                 1 |                 1 |
-| (unsigned)short  |                 2 |                 2 |
-| (unsigned)int    |                 4 |                 4 |
-| (unsigned)long   |                 8 |                 4 |
-| int32_t/uint32_t |                 4 |                 4 |
-| int64_t/uint64_t |                 8 |                 8 |
+| C Data type     | 64-bit size(byte) | 32-bit size(byte) |
+|-----------------+-------------------+-------------------|
+| (unsigned)char  |                 1 |                 1 |
+| (unsigned)short |                 2 |                 2 |
+| (unsigned)int   |                 4 |                 4 |
+| (unsigned)long  |                 8 |                 4 |
+| int32_t/uint32_t  |                 4 |                 4 |
+| int64_t/uint64_t  |                 8 |                 8 |
 不同类型的整数的取值范围也是不同的，如果一个整数占据w 位，那么该类型的
 有符号类型的取值范围是－2^{w-1}-1 ~ 2^{w-1}-1 .无符号类型的取值范围是
 0~2^w-1.

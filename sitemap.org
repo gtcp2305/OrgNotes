@@ -8,6 +8,8 @@
   - [[file:CSAPP/C_Preprocessor.org][Pre-processor]]
   - [[file:CSAPP/02_Representing_and_Manipulating_information.org][Representing and Manipulating Information]]
 - Emacs
+  - [[file:Emacs/Emacs Setup C++ IDE.org][Emacs Setup C++ IDE]]
+  - [[file:Emacs/Emacs 日积月累.org][Emacs 日积月累]]
   - [[file:Emacs/Config_Plantuml.org][Use Plantuml in Emacs]]
 - English
   - [[file:English/Grammar.org][English Grammar]]
