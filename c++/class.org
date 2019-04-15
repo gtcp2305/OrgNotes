@@ -222,9 +222,6 @@ a.func();  // 等价于： A::func(&a);
 ** 拷贝
 拷贝构造函数的第一个参数必须是一个自身类类型的引用(通常是const引用),且额外参数都有默认值。如果我们没有为类主动定义拷贝构
 造函数，编译器会为我们定义一个，称为合成拷贝构造函数，它从给定的对象中依次将每个非const 成员拷贝到正在创建的对象中。
-**
-**
-**
 ** 拷贝初始化
 拷贝初始化和直接初始化都发生在对象的初始化阶段，直接初始化就是编译器使用参数来匹配构造函数(包括拷贝构造函数);拷贝初始化时，编译器使用＝运
 算符右边的对象拷贝到正在创建的对象中，如果需要的话，还会进行类型转换。
@@ -232,12 +229,39 @@ a.func();  // 等价于： A::func(&a);
 #+BEGIN_SRC C++ -n -r :exports both :results value verbatim
   //直接初始化
   string dots(10,'.');
-  string s(dots);
   //拷贝初始化
+  string s(dots);
   string s2 = dots;
   string null_book = "9-999-99999-9";
   string nines = string(100,'9');
 #+END_SRC
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  #include <iostream>
+
+  class Test
+  {
+  public:
+      Test(){std::cout <<  "This  is default constructor\n";}
+      explicit Test(int _s){std::cout <<  "This  is  constructor\n";}
+
+      Test(const Test& other){std::cout << "This is copy constructor\n";}
+  private:
+      int s =0;
+  };
+  int main(int argc, char *argv[])
+  {
+      Test t(2);
+      Test tt(t);
+      Test ttt=t;
+      return 0;
+  }
+
+#+END_SRC
+
+#+RESULTS:
+: This  is  constructor
+: This is copy constructor
+: This is copy constructor
 
 对象在以下几种情况下会调用拷贝构造函数：
  - 当我们以一个类的对象去初始化该类的另一个对象时
