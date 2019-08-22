@@ -1,0 +1,67 @@
+#+title: Index
+C++ is a multiparadigm programming language,which support procedural,object-oriented,functional,generic,and metaprogramming.It is so powerfull that we get confuse easily,how are we make sense of such a language? The easiest way is to view c++ not as a single language but a federation of related languages.within a particular sublanguage,the rules tend to be simple,straightforward,and easy to remember.we can divide c++ into four primary sublanguages:
+- C :: [[file:names.org][names]],preprocessor,[[file:function.org][function]],arrays,pointers,etc
+- Object-Oriented :: classes,encapsulation,inheritance,polymorphism,virtual function,etc
+- Template C++ :: the generic programming part of c++
+- The STL :: the STL is a template library,containers,iterators,algorithms,and function objects,etc
+
+#+BEGIN_SRC plantuml :file figures/CHANGE.png :exports results
+  @startmindmap
+  caption C++ Mind Map
+  ,* <&flag>C++
+  ,** <&star>Object-Oriented
+  ,*** Classes
+  ,**** override operators
+  ,***** member
+  ,******_ =
+  ,******_ []
+  ,******_ ()
+  ,******_ ->
+  ,******_ 单目运算符
+  ,******_ 改变对象状态的运算符
+
+  ,***** non-member
+  ,***** friend
+  ,******_ <<
+  ,******_ >>
+
+  ,**** NoneOrAll
+  ,*****_ destructor
+  ,*****_ copy constructor
+  ,*****_ move constructor
+  ,*****_ copy assignment
+  ,*****_ move assignment
+  ,**** encapsulation
+
+  ,*** Inheritance
+  ,*** Polymorphism
+  ,**** virtual functions
+
+  ,** <&star>Procedural
+  ,*** Names
+  ,*** Functions
+  ,*** Pointers
+
+  left side
+  ,** <&star>Generic
+  ,*** Function template
+  ,*** Class template
+
+  ,** <&star>STL
+  ,*** Containers
+  ,**** Sequence Containers
+  ,*****_ vector
+  ,*****_ list
+  ,*****_ forward list
+  ,*****_ arrary
+  ,*****_ deque
+  ,**** Associative Containers
+  ,*****_ map
+  ,*****_ set
+  ,*** Algorithms
+  @endmindmap
+
+#+END_SRC
+
+#+RESULTS:
+[[file:figures/CHANGE.png]]

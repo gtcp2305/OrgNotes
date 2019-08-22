@@ -1,0 +1,25 @@
+#+TITLE: Setting GCC and Clang
+* GCC
+To use the latest GCC9.0:
+#+BEGIN_SRC sh :results value verbatim
+    sudo add-apt-repository ppa:jonathonf/gcc-9.0
+    sudo apt install gcc-9
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10 --slave /usr/bin/g++ g++ /usr/bin/g++-8
+#+END_SRC
+later if you want to change the default version:
+#+BEGIN_SRC sh :results value verbatim
+    sudo update-alternatives --config gcc
+#+END_SRC
+the command will create symbolic links to specific versions of GCC and G++.
+
+
+* Clang
+To use the latest Clang8.0,use precompiled binaries,after download binaries,
+#+BEGIN_SRC sh :results value verbatim
+  tar -xf clang+llvm-8.0*
+  cd clang+lllvm-8.0
+  sudo cp -R * /usr/local
+#+END_SRC
+
+if your program doesn't find libclang.so,it is in ~/usr/local/lib~ actually,you can add a new file in ~/etc/ld.so.conf.d/~,say =myprog.conf=,add lib path(~/usr/local/lib~)in that file,and at last type =sudo ldconfig= to make it done.

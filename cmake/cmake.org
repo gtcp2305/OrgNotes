@@ -1,7 +1,10 @@
 #+TITLE: CMake Learning
-#+OPTIONS: ^:nil
+#+OPTIONS: H:3 num:t toc:t ^:{}
+
+* Intro
+This is a note of my learning cmake using [[https://github.com/ttroy50/cmake-examples][cmake example]],and [[https://www.johnlamp.net][CMake Tutorial]]Note here in case of forget.
 * 变量
-变量都是字符串，可以在CMakeLists.txt 文件中使用 =set(varName varValue)= 命令定义，也可以在命令行使用 =-D= 参数定义，要想引用一个变量的值可以使用 =${}= .
+变量都是字符串，可以在CMakeLists.txt 文件中使用 =set(VAR VAL)= 命令定义，也可以在命令行使用 =-D= 参数定义，要想引用一个变量的值可以使用 =${VAR}= .
 * 目标（target）
 当使用 =add_executable= =add_library= =add_custom_target= 命令时，CMake 会定义目标（targets），這些目标与变量不同，他们在所有的作用域都有效，哪怕是定义在子
 目录中。
@@ -21,3 +24,99 @@
 =add_executable(name source1 ..)=
 创建一个target,
 ** target_include_directories()
+* 应用场合
+** 编译选项
+#+BEGIN_SRC
+
+# set cpp standard to c++11
+set (CMAKE_CXX_STANDARD 11)
+# set build type
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -fPIC")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+
+
+#+END_SRC
+** 库
+*** 生成库
+主要是静态库，动态库和module,用到的命令是 =add_library=,另外 =target_include_directories= 命令指明了这个库的头文件所在位置，作用域有 =PUBLIC= =PRIVATE= =INTERFACE=,该命令导致被包含的文件夹在以下两个地方用到：1.编译该库时；2.编译任何连接到该库的其它目标时。作用域的含义：
+- PRIVATE :: 文件夹添加进本库的包含文件夹
+- INTERFACE :: 文件夹被包含进任何连接到本库的目标中
+- PUBLIC :: 同上，被包含进本库和任何其他连接到本库的其它目标中
+*** 安装库
+主要用到 =install= 命令，可以参考一个模板：
+#+BEGIN_SRC
+if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+    message(STATUS "Setting default CMAKE_INSTALL_PREFIX path to ${CMAKE_BINARY_DIR}/install")
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE STRING "The path to use for make install" FORCE)
+endif()
+# Binaries and libs
+install (TARGETS
+    cmake_examples_inst_bin  #target 1
+    cmake_examples_inst      #target 2
+    RUNTIME DESTINATION bin  #bin is  CMAKE_INSTALL_PREFIX/bin
+    LIBRARY DESTINATION bin
+    ARCHIVE DESTINATION bin)
+
+# Header files
+install(DIRECTORY
+    ${PROJECT_SOURCE_DIR}/include/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h")
+
+# Config
+install (FILES cmake-examples.conf
+    DESTINATION etc)
+
+#+END_SRC
+=CMAKE_INSTALL_PREFIX= 默认是 /usr/local
+*** 使用库
+用到 =include_directories(/directories/)= 和 find_library(TESTLIB
+    NAMES cmake_examples_inst
+    PATHS ${PROJECT_SOURCE_DIR}/bin)
+
+前者可以add /directories/ to the end of this directory's include paths,后者是从PATHS 目录中查找NAMES 的库文件，并将其命名为第一个参数，这里是TESTLIB,以后要使用这个库时可以用${TESTLIB}.
+* 单元测试（google test）
+要对自己的库进行单元测试，一般我们把测试部分单独放在 =tests= 文件夹，并在该文件夹下写相应的CMakeLists.txt.
+要在CMake 中使用单元测试，必须用到的两个CMake函数是 =enable_testing()= , =add_test()=,前者必须写在top-most CMakeLists.txt 文件中，告诉CMake 我们需要进行单元测试，开启这个功能；而后者在单元测试中创建测试程序时使用，可以这么用 =add_test(NAME /name/ COMMAND /command/)=, 其中 /name/ 指定了测试程序的名称， /command/ 指定了运行测试程序时运行的命令，如果command 是一个由 =add_executable= 生成的target,则在构建阶段command 会被该target 的位置替代，为简便起见，我们可以将这两个参数都设定成executable target.
+
+我们使用GTest 测试框架进行单元测试，要使用GTest 可以有两种方式：
+1. 源码
+   在 =tests= 文件夹下执行 =git clone git@github.com:google/googletest.git= 下载GTest 源码，然后在该文件夹下的CMakeLists.txt 文件中加入：
+   #+BEGIN_EXAMPLE
+         # 将googletest 加入到项目中来
+        add_subdirectory(googletest)
+        # 链接gtest 和gtest_main,以及自己要测试的库foo_lib ,goo_lib
+        target_link_libraries(${TEST_BINARY}
+          foo_lib
+          goo_lib
+          gtest
+          gtest_main)
+   #+END_EXAMPLE
+   这种方法使用比较简单，但是在每次编译时都会编译以此gtest 和 gtest_main 库，比较费时，因此我们可以将编译好后的GTest 库文件和头文件安装在默认目录中(/usr/local/include 和 /usr/local/lib）中，这样每次编译项目时就节省了编译GTest 的时间，方法如下
+2. 库文件
+  要使用编译后的GTest 库文件需要在CMakeLists.txt 中加入以下语句：
+ #+BEGIN_EXAMPLE
+   find_package(GTest REQUIRED)
+   find_package(Threads REQUIRED)
+   include_directories(${GTEST_INCLUDE_DIRS})
+   target_link_libraries(${TEST_BINARY}
+       foo_lib
+       goo_lib
+       Threads::Threads
+       ${GTEST_BOTH_LIBRARIES})
+   #+END_EXAMPLE
+参考[[https://cmake.org/cmake/help/v3.14/module/FindGTest.html?highlight=gtest][FindGTest]] [[https://cmake.org/cmake/help/v3.14/module/FindThreads.html?highlight=thread][FindThreads]].
+
+关于GTest 的使用可以参考[[https://github.com/google/googletest/blob/master/googletest/docs/primer.md][GTest Primer]] [[https://www.cnblogs.com/coderzh/archive/2009/04/06/1430396.html][Coderzh]]
+* 在CMake 中使用不同的编译器
+参见 [[https://gitlab.kitware.com/cmake/community/wikis/FAQ#method-2-use-cmake-d][use different compiler]],推荐前两种方法：
+1. 设定环境变量 CC 和 CXX 到你想用的编译器
+2. 使用 ~cmake -D CMAKE_C_COMPILER=gcc-9 -D CMAKE_CXX_COMPILER=g++-9 ..~

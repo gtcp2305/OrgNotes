@@ -1,0 +1,122 @@
+#+TITLE: Dynamic Memory
+#+OPTIONS: H:3 num:t toc:t ^:{}
+
+https://thispointer.com/learning-shared_ptr-part-1-usage-details/
+https://www.bfilipek.com/2016/04/custom-deleters-for-c-smart-pointers.html
+
+
+
+* 内置指针
+c++ 有三种内存：静态内存，栈内存和堆内存，分别用于存储 static 数据以及全局数据、非static的局部对象、动态分配的对象。c++使用 ~new~ 在堆内存中分配空间，动态分配的对象必须显式的调用 ~delete~ 来释放动态分配的空间，
+#+BEGIN_SRC C++ -n -r :includes <iostream> :flags -Wall :main no :exports both :results value verbatim
+  #include <iostream>
+
+  int main(int argc, char *argv[]) {
+      int *t = new int[4]{6, 7, 8, 9};
+      int a[4] = {1, 2, 3, 4};
+    std::cout << a[0] << ' ' << a[1] << ' ' << a[2] << ' ' << a[3] << ' ' << "\n";
+    std::cout << t[0] << ' ' << t[1] << ' ' << t[2] << ' ' << t[3] << ' ' << "\n";
+    std::cout << sizeof(t) << '\t' << sizeof(a) << "\n";
+    delete[] t;
+    t = new int[10];
+    std::cout << t[1] << "\n";
+    delete[] t;
+
+    // 动态分配const对象，new const 返回const 型指针
+    const int *ci = new const int(8);
+
+    std::cout << *ci << "\n";
+
+    return 0;
+  }
+#+END_SRC
+
+#+RESULTS:
+: 1 2 3 4
+: 6 7 8 9
+: 8	16
+: 0
+: 8
+** 危害
+使用内置指针
+动态分配内存后必须要记得手动调用 ~delete~ 释放分配的动态内存，并将指针设置为空指针，但这也只提供了有限的保护。编译器不能分辨一个指针所指向的内存是否已经释放，因此当多个指针指向同一个地址时，如果对一个指针使用 ~delete~,并将它设置为空指针，虽然它是安全了，但是其它指针却变成了悬空指针，因为那个地址的内存被释放了，此时再使用這些悬空指针的后果是灾难性的，更可怕的是编译器发现不了这样的错误。
+
+另外如果在一个函数中分配了动态内存，也在函数的最后写了释放动态内存的语句，但如果在释放语句之前发生了异常或提前返回，那么程序不会运行释放内存的语句，也导致内存泄露。
+#+BEGIN_SRC C++ -n -r :includes <iostream> :flags -Wall :main no :exports both :results value verbatim
+  int main(int argc, char *argv[])
+  {
+      int *i = new int(10);
+      int *i1 = i;
+      std::cout << *i1 << "\n";
+      delete i;
+      i=nullptr;
+      // i1 变为悬空指针
+      return 0;
+  }
+
+#+END_SRC
+
+#+RESULTS:
+: 10
+* 智能指针
+C++ 提供了智能指针 ~shared_ptr~ ~unique_ptr~ ~weak_ptr~,它们定义在头文件 =memory= 中，是模板类。智能指针可以自动释放所指向的动态内存。它们可以通过解引用获得指向的对象，通过 =get()= 函数获得其保存的指针，这个函数要小心使用，因为智能指针一旦释放其指向的对象，该函数返回的指针所指向的对象也消失了。
+#+CAPTION:  smart pointer
+|      | ~shared_ptr~                        | ~unique_ptr~       | ~weak_ptr~                             |
+|------+-----------------------------------+------------------+--------------------------------------|
+| 说明 | 允许多个指针指向同一个对象        | 独占所指向的对象 | 弱引用，指向 ~shared_ptr~ 所指向的对象 |
+|      | 内部有一个计数器来计数有多少指针  |                  |                                      |
+|      | 指向同一个对象，当计数器为0时释放 |                  |                                      |
+|      | 动态内存                          |                  |                                      |
+
+** ~shared_ptr~
+#+CAPTION: shared_ptr 独有的操作
+| make_shared<T>(args)         | shared_ptr<T>p(q)           | p=q                              | p.unique()         | p.use_count()               |
+|------------------------------+-----------------------------+----------------------------------+--------------------+-----------------------------|
+| 返回一个指向类型T,由参数args | p是q的拷贝，递增q中的计数器 | p,q 所保存的指针必须能相互转换， | 当p.use_count()为1 | 返回与p共享对象的指针的数量 |
+| 初始化的shared_ptr           | q 中的指针必须能转化为T*    | 递增q的计数器，递减p 的计数器    | 时返回true         | 可能很慢，可用于调试        |
+
+*** 初始化
+1. 最安全最常用的初始化方法是使用 =make_shared= 函数，它使用参数 ~args~ 匹配 ~T~ 类型的构造函数；
+2. 未初始化的智能指针将是一个空指针；
+3. 使用 =new= 初始化
+#+BEGIN_SRC C++ -n -r :includes <iostream> :flags -Wall :main no :exports both :results value verbatim
+  #include <memory>
+  int main(int argc, char *argv[]) {
+      std::shared_ptr<int> esi;                            //
+      std::shared_ptr<int> si = std::make_shared<int>(10); //
+    std::shared_ptr<int> nsi(new int(20));               //
+    std::cout << *si << ' ' << *nsi << "\n";
+
+    return 0;
+  }
+#+END_SRC
+
+#+RESULTS:
+: 10 20
+接受指针参数的智能指针的构造函数是 =explicit= 的，因此不能使用隐式转换，只能使用直接初始化的形式来初始化智能指针； =shared_ptr= 能够协调对象的析构仅局限于其自身的拷贝（也是shared_ptr）之间，因此推荐使用第一种初始化方式。
+
+*** 释放内存
+=shared_ptr= 默认它指向的是动态内存，因此默认使用 =delete= 释放它所关联的对象，但是如果当指向的不是一个动态内存时，我们必须向指针传递一个删除器(deleter),来完成对象的释放操作。
+#+BEGIN_SRC C++ -n -r :includes <iostream> :flags -Wall :main no :exports both :results value verbatim
+  #include <fstream>
+  #include <memory>
+  void CloseFile(std::ifstream&stream)
+  {
+      std::cout <<   "File Closing\n";
+      stream.close();
+  }
+
+
+  int main(int argc, char *argv[])
+  {
+      std::shared_ptr<std::ifstream> stream_ptr = std::make_shared<std::ifstream>("/home/ttt/OrgNotes/c++/in.txt",std::ios::in);
+      std::shared_ptr<std::ifstream> stream_ptr1(&stream_ptr,CloseFile);
+
+      return 0;
+  }
+
+#+END_SRC
+
+#+RESULTS:
+
+*** 重置指针

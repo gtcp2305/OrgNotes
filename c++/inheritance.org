@@ -1,0 +1,96 @@
+* 访问控制与继承
+** 基类成员在派生类中的可访问性
+派生类的成员和友元可以访问基类中的 =public= =protected= 成员，不可以访问其 =private= 成员；派生类的成员函数和友元函数只能访问派生类对象中的基类部分的受保护成员，对于普通的基类对象中的成员不具有访问特权。
+** 派生类中基类成员的可访问性
+派生类中继承来的成员的访问权限受到两个因素的影响：1.在基类中的访问说明符；2. 在派生列表中的访问说明符。
+派生访问说明符可以控制基类成员在派生类中的访问说明符：
+1. 公有继承时，基类的 =public= 和 =protected= 成员的在派生类中的访问说明符不变；
+2. 保护继承时，基类的 =public= 和 =protected= 成员的在派生类中的访问说明符变为 =protected= ；
+3. 私有继承时，基类的 =public= 和 =protected= 成员的在派生类中的访问说明符变为 =private= ；
+类的用户现在有三种：
+- 普通用户 :: 只能访问类的公有成员
+- 类的实现 :: 可以访问类的私有部分
+- 派生类 :: 可以访问类的公有和受保护部分
+** 友元关系与继承
+友元关系不能传递和继承，这种关系只对做出声明的类有效。友元可以访问一个类的所有成员。
+如下面的例子，Frd是Base 的友元，则Frd 就可以访问Base 的所有成员，甚至包括其派生类对象中的Base 部分的成员。
+每个类控制各自成员的访问权限。
+#+BEGIN_SRC C++ -n -r :includes <iostream> :flags -Wall :main no :exports both :results value verbatim
+  #include <iostream>
+  class Frd;
+  class Base
+  {
+  public:
+      friend class Frd;
+      Base()=default;
+      virtual ~Base()=default;
+  protected:
+      int m_prot=0;
+  private:
+      int m_priv=0;
+  };
+  class Derived:public Base
+  {
+  public:
+      Derived()=default;
+      virtual ~Derived()=default;
+  private:
+      double m_d=1.0;
+  };
+
+  class Frd
+  {
+  public:
+      Frd()=default;
+      virtual ~Frd()=default;
+      int fun(const Base&b){return b.m_priv;}
+      int fun1(const Derived&d){return d.m_priv;} // 友元可以访问派生类中基类的部分
+
+  };
+
+  int main(int argc, char *argv[])
+  {
+      Base b;
+      Derived d;
+      Frd f;
+      std::cout << f.fun(b)<<'\n';
+      std::cout << f.fun1(d)<<'\n';
+
+      return 0;
+  }
+
+#+END_SRC
+
+#+RESULTS:
+: 0
+: 0
+
+** 改变个别成员的可访问性
+如果要改变派生类中继承的某个名字的访问权限，通过使用 =using= 声明可以实现。
+下例中，在派生类中本该是 =private= 的 size() 和 n,被分别改成了 =public= 和 =protected= :
+#+BEGIN_SRC C++ -n -r :includes <iostream> :flags -Wall :main no :exports both :results value verbatim
+  class Base
+  {
+  public:
+      Base();
+      virtual ~Base();
+      int size()const{return n;}
+  protected:
+      int n;
+  };
+
+  class Derived : private Base
+  {
+  public:
+      Derived();
+      virtual ~Derived();
+      using Base::size;
+  protected:
+      using Base::n;
+  };
+
+#+END_SRC
+_派生类只能为那些它可以访问的名字提供 =using= 声明_
+
+* 继承中的作用域
+每个类定义自己的作用域，在这个作用域内我们定义类的成员。当存在继承关系时，派生类作用域嵌套在其基类作用域内。如果一个名字在派生类作用域中找不到，编译器会在外层的基类作用域中寻找。

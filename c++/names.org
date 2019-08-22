@@ -197,7 +197,7 @@ int*(&arry)[10] = ptrs;          //int* [10]数组的引用
   {
       int ia[]{1,2,3,4,5};
       auto ia2(ia);        //ia2是指针类型
-      ,*ia2 = 6;
+      *ia2 = 6;
       std::cout<<ia[0]<<"\n";
       decltype(ia) ia3 = {6,7,8,9,0};
       for(const auto& e : ia3)
@@ -206,9 +206,11 @@ int*(&arry)[10] = ptrs;          //int* [10]数组的引用
       return 0;
   }
 #+END_SRC
+
 #+RESULTS:
 : 6
 : 6 7 8 9 0
+
 除了使用数组可以获得首元素的指针以外，还可以使用标准库函数(begin end)获得首元素和尾后元素的
 指针，它们定义在 ~iterator~ 头文件中，
 **** 指针运算
@@ -493,11 +495,11 @@ int ia[3][4];
 *Variable scope, duration, and linkage summary*
 
 Because variables have scope, duration, and linkage, let’s summarize in a chart:
-| Type                               | Example                  | Scope       | Duration           | Linkage          | Notes                        |
-| Local variable                     | int x;                   | Block scope | Automatic duration | No linkage       |                              |
+| Type                               | Example                 | Scope       | Duration           | Linkage          | Notes                        |
+| Local variable                     | int x;                  | Block scope | Automatic duration | No linkage       |                              |
 | Static local variable              | static int s_x;          | Block scope | Static duration    | No linkage       |                              |
-| Dynamic variable                   | int *x = new int;        | Block scope | Dynamic  duration  | No linkage       |                              |
-| Function parameter                 | void foo(int  x)         | Block scope | Automatic duration | No linkage       |                              |
+| Dynamic variable                   | int *x = new int;       | Block scope | Dynamic  duration  | No linkage       |                              |
+| Function parameter                 | void foo(int  x)        | Block scope | Automatic duration | No linkage       |                              |
 | External non-const global variable | int g_x;                 | File scope  | Static duration    | External linkage | Initialized or uninitialized |
 | Internal non-const global variable | static int g_x;          | File scope  | Static duration    | Internal linkage | Initialized or uninitialized |
 | Internal const global variable     | const int g_x(1);        | File scope  | Static duration    | Internal linkage | Must be initialized          |

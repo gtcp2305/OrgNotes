@@ -19,8 +19,18 @@
 - OpenGL
   - [[file:OpenGL/01_Baisc.org][Basic OpenGL]]
   - [[file:OpenGL/02_OpenGLProcessing.org][OpenGL 基本工作流程]]
+- Qt
+  - [[file:Qt/qt.org][Qt Notes]]
+- Work
+  - [[file:Work/RayLase.org][RayLase]]
 - c++
   - [[file:c++/stl.org][C++ Standard Libarary]]
   - [[file:c++/class.org][Class]]
+  - [[file:c++/lei.org][Class Usage]]
+  - [[file:c++/dynamic_memory.org][Dynamic Memory]]
   - [[file:c++/function.org][Function]]
+  - [[file:c++/IO.org][IO lib]]
   - [[file:c++/names.org][Names And Memory Layout]]
+  - [[file:c++/GCC_Clang_Settings.org][Setting GCC and Clang]]
+- cmake
+  - [[file:cmake/cmake.org][CMake Learning]]

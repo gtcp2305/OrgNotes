@@ -17,12 +17,19 @@ This is my knowledge sitemap and collections.
 [[http://members.optusnet.com.au/~charles57/GTD/org_dates/][using dates & times in Emacs Org-mode]]
 * CG & OpenGL
 [[http://docs.gl/gl3/glVertexAttrib][docs.GL]]
+[[https://www.codeproject.com/Articles/771225/Learning-Modern-OpenGL][Learning Modern OpenGL]]
+
 * C++
 [[http://www.open-std.org/jtc1/sc22/wg21/][The C++ Standards Committee-ISOCPP]]
 [[https://timsong-cpp.github.io/cppwp][Working Draft,Standard for Programming Language C++]]
 [[https://www.bogotobogo.com][BogoToBogo]]
 * CMake
 [[https://cgold.readthedocs.io/en/latest/][CGold CMake Web Tutorial]]
+[[http://www.parresianz.com/mpi/c++/mpi-unit-testing-googletests-cmake/][googletest and cmake]]
+[[http://bastian.rieck.me/blog/posts/2017/simple_unit_tests/][basic unit test]]
+[[www.cnblogs.com/coderzh/archive/2009/03/31/1426758.html][Google Test Serial(Chinese)]]
+* Git
+[[https://sentheon.com/blog/git-cheat-sheet.html][Useful commands tips and tricks]]
 * Ebooks
 [[http://gen.lib.rus.ec][Library Genesis]]
 
@@ -33,12 +40,6 @@ This is my knowledge sitemap and collections.
 [[https://www.geeksforgeeks.org][GeeksForGeeks]]
 [[https://www.programiz.com][PROGRAMIZ]]
 [[ftp://ftp.gnu.org/gnu/][GNU]]
+[[http://www.ipb.uni-bonn.de/teaching/][Course]]
 * Notes
 [[https://gtcp2305.github.io/sitemap.html][My Notes]]
-| 210 |  72 | 133 | 147 |
-|-----+-----+-----+-----|
-| 255 | 255 | 255 |   0 |
-| 210 |  72 | 133 | 129 |
-| 210 |  72 | 131 | 130 |
-| 210 |  72 | 133 | 252 |
-Mac B8AC6F3A9502

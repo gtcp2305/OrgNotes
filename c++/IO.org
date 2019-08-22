@@ -1,0 +1,178 @@
+#+TITLE: IO lib
+#+OPTIONS: H:3 num:t toc:t ^:{}
+* 简介
+C++的输入输出封装在IO库里，主要通过“流”来实现，通常可以分为三种流：普通流，文件流和string流，他们分别定义在头文件 =iostream= =fstream= =sstream= 中，下一小节主要讲可以用于这三种流的通用特性。
+* 流的特性
+** 流对象不能拷贝或赋值
+** 流的条件状态
+由 =badbit= =failbit= =eofbit= =goodbit= 四个状态位给出，只有当一个流处于无错误状态时，才能对它读写， =badbit= 表示系统级错误，一旦被置位，流就无法使用了， =failbit= 置位表示可恢复的错误，修正后流还可以使用，如果到达文件结束位置， =eofbit= 和 =failbit= 都会置位， =goodbit= 的值为0,表示流未发生错误。我们可以通过与状态位相对应的四个函数来察看是否被置位，它们分别是 =bad()= =fail()= =eof()= =good()=,另外当 =failbit= 被置位时， =faile= 也会返回 =true= ,这意味着使用 =good()= 或 =faile()= 是确定流总体状态的正确方法，而 =eof()= 和 =bad()= 只能表示特定的错误。
+
+获取当前流状态可以用 =rdstate()=, =setstate()= 将给定的状态位置位， =clear()= 可以清除错误标志位。
+** 缓冲
+缓冲就是输出流首先将内容放在缓存里，而不是直接输出到屏幕、文件等目的地，它的好处是可以将程序的多个输出组合成单一的系统级写操作，由于写操作很费时，所以这会带来很大的性能提升。
+
+导致缓冲刷新（数据真正写道输出设备或文件）的原因很多：
+1. 程序正常结束
+2. 缓冲区满，需要刷新缓冲，而后新的数据才能继续写入缓冲区
+3. 使用操纵符。
+   #+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+     cout << "hi" << endl;  // 换行＋刷新缓冲
+     cout << "hi" << ends;  // 空字符＋刷新缓冲
+     cout << "hi" << flush; // 只刷新缓冲
+     cout << unitbuf;       // 接下来每次输出操作后都进行一次flush操作
+     cout << nounitbuff;    // 回到正常缓冲的方式
+   #+END_SRC
+   需要注意的是 =cerr= 默认情况下是设置 =unitbuf= 的，另外 *_如果程序崩溃，输出缓冲区不会被刷新_*
+4. 关联输入输出流
+   当一个输入流被关联到一个输出流时，在从输入流读取数据前都会刷新它关联的输出流，cin 与 cout 是关联在一起的。关联函数是 =tie()=,每个流同时最多只能关联到一个流，但多个流可以同时关联到同一个流，通常是关联到一个输出流。
+** 流的格式状态
+除了条件状态外，每个流对象还维护一个格式状态来控制IO如何格式化的细节，标准库定义了一组操纵符（manipulator）来修改流的格式状态，一个操纵符是一个函数或者对象，会影响流的状态，并能用作输入输出运算符的运算对象。
+
+浮点数的打印精度默认是6位，即打印数字的总数是6个数字，打印时浮点值按当前值舍入而非截断。可以通过流对象的 =precision()= 成员函数或使用 =setprecision()= 操纵符来设置精度；而在执行 ~scientific~, ~fixed~ ~hexfloat~ 后控制的是小数点后面的小数部分的位数。
+
+如果需要非常精细的控制数据格式，可以输出补白来帮助完成所需的控制。 =setw()= 指定下一个数字或字符串所占用的空间， =left= =right= 表示对齐方向， =internal= 控制负数的符号位置，它左对齐符号，右对齐值，用空格填满所有中间空间， =setfill= 指定一个字符代替默认的空格来补白输出。
+#+BEGIN_SRC C++ -n -r :includes <iostream> :flags -Wall :main no :exports both :results value verbatim
+  #include <iomanip> //setprecision setw setfill
+  #include <iostream>
+  int main(int argc, char *argv[]) {
+    double pi = 3.1415926;
+    std::cout << true << ' ' << false << '\n'
+              << std::boolalpha << true << ' ' << false << '\n'
+              << std::noboolalpha;
+    std::cout << std::showbase << std::uppercase << std::hex << 20 << ' ' << 1024
+              << std::noshowbase << std::nouppercase << "\n";
+    std::cout.precision(6);
+    std::cout << pi << '\n';
+    std::cout << std::setprecision(4) << pi << '\n';
+    std::cout << std::fixed << pi << '\n';
+
+    std::cout << "pi:" << std::setw(20) << pi << "next col\n";
+    std::cout << std::left << "pi:" << std::setw(20) << pi << "next col\n";
+    std::cout << std::internal << "pi:" << std::setw(20) << -pi << "next clo\n";
+    std::cout << std::setfill('*') << "pi:" << std::setw(20) << -pi
+              << "next clo\n";
+
+    return 0;
+  }
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+1 0
+true false
+0X14 0X400
+3.14159
+3.142
+3.1416
+pi:              3.1416next col
+pi:3.1416              next col
+pi:-             3.1416next clo
+pi:-*************3.1416next clo
+#+end_example
+** 随机访问
+我们可以重定位流，通过定位（seek）到流中的给定位置，以及告诉（tell）当前位置。由于 istream 和 ostream 类型通常不支持随机访问，所以本小节内容只适用于 fstream 和 sstream。
+标准库实际上定义了两对 =tell= 和 =seek= 函数，分别用于输入流和输出流，输入和输出版本的差别在于后缀是 ~g~ 还是 ~p~.
+每个版本的seek 函数都有两个重载形式：按绝对位置和按相对位置，
+#+BEGIN_SRC C++ -n -r :includes <iostream> :flags -Wall :main no :exports both :results value verbatim
+  inf.seekg(14,ios::cur); // move forward 14 bytes
+  inf.seekg(0,ios::beg); //move to beginning of file
+  inf.seekg(24); //move to 24bytes infile
+#+END_SRC
+* 文件流
+流对象使用 =open()= 和 =close()= 成员函数来打开和关闭一个文件，一个文件打开后该对象一直保持与对应文件的关联，直到调用 =close()=,对一个已经打开的文件流调用 =open()= 会失败，并置位 =failbit=,因此为了将文件流关联到另一个文件上，必须关闭已经关联的文件。
+
+在打开文件时可以选择文件模式：
+#+CAPTION: File Mode
+| mode   | description                              |
+|--------+------------------------------------------|
+| in     | 以读方式打开文件                         |
+| out    | 以写方式打开文件                         |
+| app    | 不清空源文件内容，写操作前定位到文件末尾 |
+| ate    | 打开文件后定位到文件末尾                 |
+| trunc  | 如果文件存在就清空原内容（截断）         |
+| binary | 以二进制方式打开                         |
+一些限制：
++ 与ifstream 关联的文件默认以in 打开，同理ofstream 默认out,fstream 默认in 和 out
++ 只有设定out 后才能 设定 trunc 模式，默认情况下，以out 模式打开的文件即使没指定 trunc 也会被截断，如果要保留原文件内容，必须指定app模式或同时指定in 模式；
++ ate 和 binary 模式可以用于任何类型的文件流对象，且可以与其它任何文件模式组合使用。
+** 读写文本文件
+#+BEGIN_SRC C++ -n -r :includes <iostream> :flags -Wall :main no :exports both :results value verbatim
+  #include <fstream>
+  #include <iostream>
+  #include <sstream>
+  #include <string>
+  int main(int argc, char *argv[]) {
+    std::fstream inFile;
+    inFile.open("/home/ttt/OrgNotes/c++/in.txt", std::ios::in | std::ios::ate);
+    if (inFile) {
+        std::cout << "File size: " << inFile.tellg() << '\n';
+        inFile.seekg(0, std::ios::beg); // move to beginning of file
+        // !read every line
+        std::cout << "Read Line Test-------------------\n";
+        std::string line;
+        // method 1
+        // while (!inFile.eof()) {
+        //     std::getline(inFile, line, '\n');
+        //     std::cout << line;
+        // }
+        // method 2
+        while (std::getline(inFile, line, '\n')) {
+            std::cout << line << '\t';
+        }
+
+        std::cout << '\n';
+        // !read all
+        // at the end of file,eofbit and fialebit is set,so before using
+        // stream,clear error bit first
+        std::cout << "Read All Test-------------------\n";
+        if (inFile.fail()) {
+            inFile.clear(inFile.rdstate() & ~inFile.failbit &
+                         ~inFile.eofbit); // or inFile.clear();
+        }
+        std::cout << inFile.tellg() << '\n';
+        inFile.seekg(0, std::ios::beg);
+        std::cout << inFile.tellg() << '\n';
+        std::stringstream buffer;
+        buffer << inFile.rdbuf();
+        std::string contents(buffer.str());
+        std::cout << contents;
+        std::cout << inFile.tellg() << '\n';
+
+        // Read every word
+        std::cout << "Read Every Word Test-------------------\n";
+        if (inFile.fail())
+        inFile.clear();
+      inFile.seekg(0);
+      // while (inFile >> line)
+      //   std::cout << line << '*';
+    } else {
+        std::cerr << "Oh,no,failed open file\n";
+    }
+    inFile.close();
+    return 0;
+  }
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+File size: 100
+Read Line Test-------------------
+This is a test file	I: like C++,	I: like Emacs,	I like Org-mode,	I also like cmake,	I like Git too.
+Read All Test-------------------
+100
+0
+This is a test file
+I: like C++,
+I: like Emacs,
+I like Org-mode,
+I also like cmake,
+I like Git too.
+100
+Read Every Word Test-------------------
+This*is*a*test*file*I:*like*C++,*I:*like*Emacs,*I*like*Org-mode,*I*also*like*cmake,*I*like*Git*too.*
+#+end_example
+
+
+
+** 读写二进制文件
+* string 流

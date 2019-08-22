@@ -46,7 +46,7 @@ $ sudo apt install libcppunit-dev
 $ cd /path/to/project/root </build>
 $ rdm &
 $ cmake  -DCMAKE_EXPORT_COMPILE_COMMANDS=1 . <..>
-$ rc -J . <..>
+$ rc -J <path-to-compile_commands.json>
 #+END_SRC
 RTags is made up of two programs:[fn::http://diobla.info/doc/rtags]
 + rdm:a server that index files and handles database queries.
@@ -76,7 +76,7 @@ Find references in project
 
 Find files in project
 
-    C-c r ; runs rtags-find-file, which prompts for file name to search for out of currently indexed files.
+C-c r ; runs rtags-find-file, which prompts for file name to search for out of currently indexed files.
 
 Alternatively, this can be better accomplished with Projectile.
 View visited tags with tag stack
@@ -85,8 +85,9 @@ View visited tags with tag stack
     C-c r ] rtags-location-stack-forward Moves forward in location stack.
 * cmake-ide
 =M-x add-dir-local-variable= to add =.dir-locals.el= file in the project root,and
-set =cmake-ide-build-dir= to =project_root/build= (absolute path),you should manualy
-compile the project for the *first time*, e.g:
+set =cmake-ide-build-dir= to =project_root/build= (absolute path),like this:
+ =((nil . ((cmake-ide-build-dir . "<PATH_TO_PROJECT_BUILD_DIRECTORY>"))))=
+,you should manually compile the project for the *first time*, e.g:
 #+BEGIN_SRC sh
 # in project root directory
 $ cd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..
@@ -96,3 +97,4 @@ Now we have a =compile_commands.json= file in /build/ directory,and that is wher
 index our project,and no longer care RTags and cmake,because that is all done by cmake-ide.
 * Blog
 [[https://vxlabs.com/2016/04/11/step-by-step-guide-to-c-navigation-and-completion-with-emacs-and-the-clang-based-rtags/][Step-by-step guide to C++ navigation and completion with Emacs and the Clang-based rtags]]
+* GDB

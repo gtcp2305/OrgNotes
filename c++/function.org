@@ -1,5 +1,6 @@
 #+INCLUDE: /home/ttt/.templates/NoteConfig.org
 #+TITLE: Function
+#+OPTIONS: H:3 num:t toc:t ^:{}
 #+Author:
 #+Email:
 #+DATE:  2018-11-21
@@ -8,6 +9,10 @@
 四部分：返回类型、函数名、形参列表、函数体。在调用函数时我们使用实参初始化形参。
 函数在使用之前也需要声明，与变量类似，函数可以声明多次，但只能定义一次，唯一的例
 外是虚函数，如果一个函数永远也不会被用到，那么它可以只有声明没有定义。
+=GOOGLE-STYLE= :use snake_case arguments,name function in CamlCase
+#+BEGIN_SRC C++ -n -r :exports both :results value verbatim
+  void DoSmth(const std::string& huge_string);
+#+END_SRC
 
 函数的调用无外乎两个方面，参数传递和结果返回，下面就这两个方面进行详细的解释。
 * 参数传递
