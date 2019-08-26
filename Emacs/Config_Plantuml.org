@@ -1,4 +1,5 @@
 #+TITLE:  Use Plantuml in Emacs
+#+OPTIONS: ^:{}
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://orgmode.org/worg/style/worg.css"/>
 
 * Setup Java Environment
@@ -54,6 +55,62 @@ add these to .emacs or init.el
 :PROPERTIES:
 :ID:       9deade7e-0ab4-4159-8ee9-942dc4ba9c64
 :END:
+* Setup gnuplot
+根据[[https://www.orgmode.org/worg/org-contrib/babel/languages/ob-doc-gnuplot.html][Org-babel-gnuplot]] [[https://www.gnu.org/software/emacs/manual/html_node/org/Org_002dPlot.html][Org-Plot]] [[http://www.zmonster.me/2016/06/03/org-mode-table.html#orgheadline6][强大的 Org mode(3): 表格的基本操作及公式、绘图]] 这三篇网页提供的信息，我们可以在Org-mode 下使用 [[http://gnuplot.sourceforge.net/demo_5.2/][gnuplot]] 进行数据和数学函数的绘制和可视化，按以下步骤：
+- 安装gnuplot :: sudo apt install gnuplot
+- 设置init.el :: (defvar load-language-list '((gnuplot . t)))
+- 安装package :: gnuplot-mode,gnuplot 共两个
+之后就可以了，以下三个简单的应用：
+1. org-babel, 绘制数学函数，在代码内按下 =C-c C-c=
+   #+BEGIN_SRC gnuplot :file output.png :exports results
+     reset
+
+     set title "Putting it All Together"
+
+     set xlabel "X"
+     set xrange [-8:8]
+     set xtics -8,2,8
+
+     set ylabel "Y"
+     set yrange [-20:70]
+     set ytics -20,10,70
+
+     f(x) = x**2
+     g(x) = x**3
+     h(x) = 10*sqrt(abs(x))
+
+     plot f(x) w lp lw 1, g(x) w p lw 1, h(x) w l lw 1
+   #+END_SRC
+
+2. org-babel, 绘制表格数据，在代码内按下 =C-c C-c=
+   #+tblname: grades
+   | Ben  | 9.2 | 9.9 |
+   | Tim  | 6.7 | 7.7 |
+   | Tom  | 7.5 | 6.7 |
+   | Dean | 8.0 | 7.0 |
+
+   #+begin_src gnuplot :var data=grades :results output :file grades.png
+     set title "Students' Grades"
+     set yrange[0:10]
+     set style data histogram
+     set terminal png size 400,300
+     plot data using 2:xtic(1) title 'Maths', '' using ($3) title 'Physics'
+   #+end_src
+
+3. 直接使用gnuplot 绘制表格数据，在代码内使用命令 =org-plot/gnuplot=
+   #+PLOT: title:"Citas" ind:1 deps:(3) type:3d with:histograms set:"yrange [0:]" file: "plot.png"
+    | Sede      | Max cites | H-index |
+    |-----------+-----------+---------|
+    | Chile     |    257.72 |   21.39 |
+    | Leeds     |    165.77 |   19.68 |
+    | Sao Paolo |     71.00 |   11.50 |
+    | Stockholm |    134.19 |   14.33 |
+    | Morelia   |    257.56 |   17.67 |
+
+
+
+
+
 * Reference:
 http://www.alvinsim.com/diagrams-with-plantuml-and-emacs/
 http://plantuml.com/starting

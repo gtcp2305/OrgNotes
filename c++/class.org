@@ -418,6 +418,10 @@ C++实现动态绑定的条件有三个：
                                                +--------------------+
 @endditaa
 #+END_SRC
+
+#+RESULTS:
+[[file:figures/PointMemeryLayout.png]]
+
 所以一个class object需要多少内存?一般而言要有：
 - 其non-static data member 的总和大小
 - 加上任何由于alignment 的需求而填补(padding)上去的空间

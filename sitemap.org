@@ -32,5 +32,6 @@
   - [[file:c++/IO.org][IO lib]]
   - [[file:c++/names.org][Names And Memory Layout]]
   - [[file:c++/GCC_Clang_Settings.org][Setting GCC and Clang]]
+  - [[www.keithschwarz.com/interesting][Interesting Code]]
 - cmake
   - [[file:cmake/cmake.org][CMake Learning]]
